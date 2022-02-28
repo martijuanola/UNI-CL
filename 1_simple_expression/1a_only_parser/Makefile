@@ -78,8 +78,8 @@ endif
 
 # The root directory of your antlr4 runtime is ...
 #ANTLR_ROOT := /usr/local
-ANTLR_ROOT := /assig/marti.juanola/cl/runtime
-#ANTLR_ROOT := /usr
+#ANTLR_ROOT := /assig/marti.juanola/cl/runtime
+ANTLR_ROOT := /usr
 
 # Where to find various parts of the runtime files
 INCDIR		:= $(ANTLR_ROOT)/include/antlr4-runtime/

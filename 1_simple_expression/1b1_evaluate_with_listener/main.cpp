@@ -11,7 +11,7 @@
 #include <cstdio>     // fopen
 #include <cstdlib>    // EXIT_FAILURE, EXIT_SUCCESS
 
-// using namespace std;
+ using namespace std;
 // using namespace antlr4;
 
 
@@ -26,22 +26,41 @@ public:
   }
 
   void exitE(ExprParser::EContext *ctx) {  // e : e MUL e | e ADD e | INT ;
-    if (ctx->INT()) {  // if this node has a child INT
     // Alternative:
     // if (ctx->children.size() == 1) {  // if this node has one child
+    if (ctx->INT()) {  // if this node has a child INT
       int val = std::stoi(ctx->INT()->getText());
       values.put(ctx, val);
     }
+    else if (ctx->SUB() and ctx->children.size() == 2) {
+		int val = values.get(ctx->e(0));
+        values.put(ctx, -val);
+	}
+	else if (ctx->MAX()) {      
+		values.put(ctx, values.get(ctx->list_of_e()));
+	}
     else {
       int left = values.get(ctx->e(0));
       int right = values.get(ctx->e(1));
-      if (ctx->PROVA())  // if this node has a child MUL
-        values.put(ctx, 101);
-      else             // must be ADD
-        values.put(ctx, left+right);
+      if (ctx->ADD()) values.put(ctx, left+right);
+      else if (ctx->SUB()) values.put(ctx, left-right);
+      else if (ctx->MUL()) values.put(ctx, left*right);
+      else if (ctx->DIV()) values.put(ctx, left/right);
     }
   }
-
+  
+  void exitList_of_e(ExprParser::List_of_eContext *ctx) {
+		if (ctx->children.size() == 1) {  // if this node has only a child e()
+			int val = values.get(ctx->e());
+			values.put(ctx, val);
+		} 
+		else {
+			int left = values.get(ctx->e());
+			int right = values.get(ctx->list_of_e());
+			if(left > right) values.put(ctx, left);
+			else values.put(ctx, right);
+		}
+  }
 };
 // Sample "Evaluator" (implemented with a listener)
 ///////////////////////////////////////////////////////////////////////

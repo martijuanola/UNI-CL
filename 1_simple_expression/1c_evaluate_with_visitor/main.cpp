@@ -29,13 +29,32 @@ public:
     if (ctx->INT()) {   // if this node has a child INT
       return std::stoi(ctx->INT()->getText());    // or: ctx->getText()
     }
+    else if(ctx->SUB()) return visit(ctx->e(0));
+	else if (ctx->MAX()) {
+		int childs = ctx->list_of_e()->children.size();
+		int max;
+		for(int i = 0; i < (childs+1)/2; i++) {
+			int val = visit(ctx->list_of_e()->e(i));
+			if(i == 0 or val > max) max = val;
+		}
+		return max;
+	}
+	else if(ctx->MIN()) {
+		int childs = ctx->list_of_e()->children.size();
+		int min;
+		for(int i = 0; i < (childs+1)/2; i++) {
+			int val = visit(ctx->list_of_e()->e(i));
+			if(i == 0 or val < min) min = val;
+		}
+		return min;
+	}
     else {
       int left = visit(ctx->e(0));     // get value of left subexpression
       int right = visit(ctx->e(1));    // get value of right subexpression
-      if (ctx->MUL())  // if this node has a child MUL
-        return left*right;
-      else             // must be ADD
-        return left+right;
+      if (ctx->MUL()) return left*right;
+      else if(ctx->DIV()) return left/right;
+      else if(ctx->ADD()) return left+right;
+      else if(ctx->SUB()) return left-right;
     }
   }
   

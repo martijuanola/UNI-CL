@@ -44,13 +44,13 @@ ANTLR4FLAGS := -Dlanguage=Cpp
 # Some more antlr4 options:
 # Add or remove a leading '#' to disable or enable.
 # Do not generate Visitor classes
-# ANTLR4FLAGS += -no-visitor
+ANTLR4FLAGS += -no-visitor
 # Do generate Visitor classes
-ANTLR4FLAGS += -visitor
+#ANTLR4FLAGS += -visitor
 # Do not generate Listener classes
-ANTLR4FLAGS += -no-listener
+#ANTLR4FLAGS += -no-listener
 # Do generate Listener classes
-#ANTLR4FLAGS += -listener
+ANTLR4FLAGS += -listener
 
 
 # The default target to make is:
@@ -78,7 +78,7 @@ endif
 
 # The root directory of your antlr4 runtime is ...
 #ANTLR_ROOT := /usr/local
-#ANTLR_ROOT := /assig/cl/runtime
+#ANTLR_ROOT := /assig/marti.juanola/cl/runtime
 ANTLR_ROOT := /usr
 
 # Where to find various parts of the runtime files
