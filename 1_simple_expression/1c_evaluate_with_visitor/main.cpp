@@ -29,7 +29,10 @@ public:
     if (ctx->INT()) {   // if this node has a child INT
       return std::stoi(ctx->INT()->getText());    // or: ctx->getText()
     }
-    else if(ctx->SUB()) return visit(ctx->e(0));
+    else if(ctx->SUB()) {
+		int val = visit(ctx->e(0));
+		return - val;
+	}
 	else if (ctx->MAX()) {
 		int childs = ctx->list_of_e()->children.size();
 		int max;
