@@ -93,6 +93,7 @@ int main(int argc, const char* argv[]) {
   }
 
   exit(0);
+  
   // print the parse tree (for debugging purposes)
   // std::cout << tree->toStringTree(&parser) << std::endl;
 

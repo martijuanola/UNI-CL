@@ -142,7 +142,11 @@ antlrcpp::Any TypeCheckVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
   TypesMgr::TypeId t1 = getTypeDecor(ctx->expr());
   if ((not Types.isErrorTy(t1)) and (not Types.isBooleanTy(t1)))
     Errors.booleanRequired(ctx);
-  visit(ctx->statements());
+  
+  bool b = getIsLValueDecor(ctx->expr());
+  if(b) visit(ctx->statements(0));
+  else visit(ctx->statements(1));
+  
   DEBUG_EXIT();
   return 0;
 }

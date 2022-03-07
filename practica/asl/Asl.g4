@@ -1,31 +1,3 @@
-//////////////////////////////////////////////////////////////////////
-//
-//    Asl - Another simple language (grammar)
-//
-//    Copyright (C) 2017-2022  Universitat Politecnica de Catalunya
-//
-//    This library is free software; you can redistribute it and/or
-//    modify it under the terms of the GNU General Public License
-//    as published by the Free Software Foundation; either version 3
-//    of the License, or (at your option) any later version.
-//
-//    This library is distributed in the hope that it will be useful,
-//    but WITHOUT ANY WARRANTY; without even the implied warranty of
-//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//    Affero General Public License for more details.
-//
-//    You should have received a copy of the GNU Affero General Public
-//    License along with this library; if not, write to the Free Software
-//    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-//
-//    contact: José Miguel Rivero (rivero@cs.upc.edu)
-//             Computer Science Department
-//             Universitat Politecnica de Catalunya
-//             despatx Omega.110 - Campus Nord UPC
-//             08034 Barcelona.  SPAIN
-//
-//////////////////////////////////////////////////////////////////////
-
 grammar Asl;
 
 //////////////////////////////////////////////////
@@ -74,7 +46,8 @@ statement
           // Assignment
         : left_expr ASSIGN expr ';'           # assignStmt
           // if-then-else statement (else is optional)
-        | IF expr THEN statements ENDIF       # ifStmt
+//MIRAR QUE ESTIGUI BÉ L'ELSE(test 3) 
+        | IF expr THEN statements (ELSE statements)? ENDIF       # ifStmt
           // while-do-endwhile statement
         | WHILE expr 'do' statements ENDWHILE # whileStmt
           // A function/procedure call has a list of arguments in parenthesis (possibly empty)
@@ -91,7 +64,8 @@ statement
 
 // Grammar for left expressions (l-values in C++)
 left_expr
-        : ident
+        : ident '[' expr ']'
+        | ident
         ;
 
 // Grammar for expressions with boolean, relational and aritmetic operators
@@ -103,6 +77,8 @@ expr    :  LPAR expr RPAR                     # parenthesis
         | expr op=AND expr                    # boolean
         | expr op=OR expr                     # boolean
         | (INTVAL|FLOATVAL|CHARVAL|BOOLVAL)   # value
+        | ID '(' expr (',' expr)* ')'		  # functionCall
+        | ident '[' expr ']'				  # exprIdent
         | ident                               # exprIdent
         ;
 

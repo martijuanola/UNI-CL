@@ -88,8 +88,8 @@ antlrcpp::Any SymbolsVisitor::visitFunction(AslParser::FunctionContext *ctx) {
   else {
   
     TypesMgr::TypeId tRet; // RETURN type
-    if (ctx->basic_type() != NULL)
-      tRet = getTypeDecor(ctx->basic_type());
+    if (ctx->type() != NULL)
+      tRet = getTypeDecor(ctx->type());
     else 
       tRet = Types.createVoidTy();
 
@@ -105,13 +105,18 @@ antlrcpp::Any SymbolsVisitor::visitFunction(AslParser::FunctionContext *ctx) {
   return 0;
 }
 
-antlrcpp::Any SymbolsVisitor::visitFunc_params(AslParser::Func_paramContext *ctx) {
+antlrcpp::Any SymbolsVisitor::visitFunc_params(AslParser::Func_paramsContext *ctx) {
    DEBUG_ENTER();
-  for(int i = 0; i<ctx->ID().size(); ++i){
-     std::string id = ctx->ID(i)->getText();
-     TypesMgr::TypeId t = getTypeDecor(ctx->type(i));
+   
+   int count = 0;
+   for(auto i : ctx->ID()){
+	   
+	   std::string id = i->getText();
+	   TypesMgr::TypeId t = getTypeDecor(ctx->type(count));
      Symbols.addParameter(id,t);
-  }
+     count++;
+   }
+   
   DEBUG_EXIT();
   return 0;
 }
@@ -125,23 +130,28 @@ antlrcpp::Any SymbolsVisitor::visitDeclarations(AslParser::DeclarationsContext *
 
 antlrcpp::Any SymbolsVisitor::visitVariable_decl(AslParser::Variable_declContext *ctx) {
   DEBUG_ENTER();
+  std::vector<std::string> ids(0);
   for(auto i : ctx->ID()){
     std::string ident = i->getText();
     //visit(ctx->type());
     if (Symbols.findInCurrentScope(ident)) {
-      Errors.declaredIdent(ctx->ID());
+      Errors.declaredIdent(i);
     }
-    else {
-      TypesMgr::TypeId t1 = getTypeDecor(ctx->type());
-      Symbols.addLocalVar(ident, t1);
-    }
+    ids.push_back(ident);
   }
+  
+  TypesMgr::TypeId t1 = getTypeDecor(ctx->type());
+  int childs = ids.size();
+  for(int i = 0; i < childs; i++) {
+	Symbols.addLocalVar(ids[i], t1);
+  }
+  
   DEBUG_EXIT();
   return 0;
 }
 
 
-antlrcpp::Any SymbolsVisitor::visitArray_decl(AslParser::Variable_declContext *ctx) {
+antlrcpp::Any SymbolsVisitor::visitArray_decl(AslParser::Array_declContext *ctx) {
   DEBUG_ENTER();
   // Size of array
   unsigned int size = std::stoi(ctx->INTVAL()->getText());
@@ -167,11 +177,11 @@ antlrcpp::Any SymbolsVisitor::visitType(AslParser::TypeContext *ctx) {
 
 antlrcpp::Any SymbolsVisitor::visitBasic_type(AslParser::Basic_typeContext *ctx) {
   DEBUG_ENTER();
-  TypesMgr::TypeId t = Types.createIntegerTy();
-  if (ctx->INT()) TypesMgr::TypeId t = Types.createIntegerTy();
-  if (ctx->FLOAT()) TypesMgr::TypeId t = Types.createFloatTy();
-  if (ctx->BOOL()) TypesMgr::TypeId t = Types.createBooleanTy();
-  if (ctx->CHAR()) TypesMgr::TypeId t = Types.createCharacterTy();
+  TypesMgr::TypeId t;
+  if (ctx->INT()) t = Types.createIntegerTy();
+  else if (ctx->FLOAT()) t = Types.createFloatTy();
+  else if (ctx->BOOL()) t = Types.createBooleanTy();
+  else if (ctx->CHAR()) t = Types.createCharacterTy();
   putTypeDecor(ctx, t);
   DEBUG_EXIT();
   return 0;
