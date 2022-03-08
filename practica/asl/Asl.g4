@@ -77,7 +77,7 @@ expr    :  LPAR expr RPAR                     # parenthesis
         | expr op=AND expr                    # boolean
         | expr op=OR expr                     # boolean
         | (INTVAL|FLOATVAL|CHARVAL|BOOLVAL)   # value
-        | ID '(' expr (',' expr)* ')'		  # functionCall
+        | ID '(' (expr (',' expr)*)? ')'		  # functionCall
         | ident '[' expr ']'				  # exprIdent
         | ident                               # exprIdent
         ;

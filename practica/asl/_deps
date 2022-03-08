@@ -1,4 +1,6 @@
 TypesMgr.o: ../common/TypesMgr.cpp ../common/TypesMgr.h
+LLVMCodeGen.o: ../common/LLVMCodeGen.cpp ../common/LLVMCodeGen.h \
+ ../common/TypesMgr.h ../common/SymTable.h ../common/code.h
 SemErrors.o: ../common/SemErrors.cpp ../common/SemErrors.h \
  /usr/include/antlr4-runtime/antlr4-runtime.h \
  /usr/include/antlr4-runtime/antlr4-common.h \
@@ -160,8 +162,6 @@ SymTable.o: ../common/SymTable.cpp ../common/TypesMgr.h \
  ../common/SymTable.h
 code.o: ../common/code.cpp ../common/code.h ../common/TypesMgr.h \
  ../common/SymTable.h ../common/LLVMCodeGen.h
-LLVMCodeGen.o: ../common/LLVMCodeGen.cpp ../common/LLVMCodeGen.h \
- ../common/TypesMgr.h ../common/SymTable.h ../common/code.h
 TreeDecoration.o: ../common/TreeDecoration.cpp ../common/TreeDecoration.h \
  ../common/TypesMgr.h ../common/SymTable.h \
  /usr/include/antlr4-runtime/antlr4-runtime.h \
