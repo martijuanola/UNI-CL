@@ -46,12 +46,11 @@ statement
           // Assignment
         : left_expr ASSIGN expr ';'           # assignStmt
           // if-then-else statement (else is optional)
-//MIRAR QUE ESTIGUI BÉ L'ELSE(test 3) 
         | IF expr THEN statements (ELSE statements)? ENDIF       # ifStmt
           // while-do-endwhile statement
         | WHILE expr 'do' statements ENDWHILE # whileStmt
           // A function/procedure call has a list of arguments in parenthesis (possibly empty)
-        | ident '(' ')' ';'                   # procCall
+        | ident '(' (expr (',' expr)*)? ')' ';'                   # procCall
           // Return statement
         | RETURN expr? ';'                    #returnStmt
           // Read a variable
@@ -71,7 +70,7 @@ left_expr
 // Grammar for expressions with boolean, relational and aritmetic operators
 expr    :  LPAR expr RPAR                     # parenthesis
         | op=(MINUS|NOT|PLUS) expr            # unary
-        | expr op=(MUL|DIV) expr              # arithmetic
+        | expr op=(MUL|DIV|MOD) expr          # arithmetic
         | expr op=(PLUS|MINUS) expr           # arithmetic
         | expr op=(EQUAL|NEQ|LT|GT|LE|GE) expr    # relational
         | expr op=AND expr                    # boolean
@@ -106,6 +105,7 @@ PLUS      : '+' ;
 MINUS     : '-' ;
 MUL       : '*';
 DIV       : '/';
+MOD		  : '%';
 
 VAR       : 'var';
 INT       : 'int';
