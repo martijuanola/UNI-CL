@@ -43,22 +43,14 @@ statements
 
 // The different types of instructions
 statement
-          // Assignment
-        : left_expr ASSIGN expr ';'           # assignStmt
-          // if-then-else statement (else is optional)
-        | IF expr THEN statements (ELSE statements)? ENDIF       # ifStmt
-          // while-do-endwhile statement
-        | WHILE expr 'do' statements ENDWHILE # whileStmt
-          // A function/procedure call has a list of arguments in parenthesis (possibly empty)
-        | ident '(' (expr (',' expr)*)? ')' ';'                   # procCall
-          // Return statement
-        | RETURN expr? ';'                    #returnStmt
-          // Read a variable
-        | READ left_expr ';'                  # readStmt
-          // Write an expression
-        | WRITE expr ';'                      # writeExpr
-          // Write a string
-        | WRITE STRING ';'                    # writeString
+        : left_expr ASSIGN expr ';'           				# assignStmt
+        | IF expr THEN statements (ELSE statements)? ENDIF  # ifStmt
+        | WHILE expr 'do' statements ENDWHILE 				# whileStmt
+        | ident '(' (expr (',' expr)*)? ')' ';'             # procCall
+        | RETURN expr? ';'                    				# returnStmt
+        | READ left_expr ';'                  				# readStmt
+        | WRITE expr ';'                      				# writeExpr
+        | WRITE STRING ';'                    				# writeString
         ;
 
 // Grammar for left expressions (l-values in C++)
@@ -68,29 +60,28 @@ left_expr
         ;
 
 // Grammar for expressions with boolean, relational and aritmetic operators
-expr    :  LPAR expr RPAR                     # parenthesis
-        | op=(MINUS|NOT|PLUS) expr            # unary
-        | expr op=(MUL|DIV|MOD) expr          # arithmetic
-        | expr op=(PLUS|MINUS) expr           # arithmetic
-        | expr op=(EQUAL|NEQ|LT|GT|LE|GE) expr    # relational
-        | expr op=AND expr                    # boolean
-        | expr op=OR expr                     # boolean
-        | (INTVAL|FLOATVAL|CHARVAL|BOOLVAL)   # value
-        | ID '(' (expr (',' expr)*)? ')'		  # functionCall
-        | ident '[' expr ']'				  # exprIdent
-        | ident                               # exprIdent
+expr    : '(' expr ')'                          # parenthesis
+        | op=(MINUS|NOT|PLUS) expr            	# unary
+        | expr op=(MUL|DIV|MOD) expr          	# arithmetic
+        | expr op=(PLUS|MINUS) expr           	# arithmetic
+        | expr op=(EQUAL|NEQ|LT|GT|LE|GE) expr  # relational
+        | expr op=AND expr                   	# boolean
+        | expr op=OR expr                    	# boolean
+        | (INTVAL|FLOATVAL|CHARVAL|BOOLVAL)   	# value
+        | ident                               	# exprIdent
         ;
 
 // Identifiers
-ident   : ID
+ident   : ID '(' (expr (',' expr)*)? ')'
+		| ID '[' expr ']'
+		| ID
         ;
 
 //////////////////////////////////////////////////
 /// Lexer Rules
 //////////////////////////////////////////////////
 
-LPAR      : '(';
-RPAR      : ')';
+// ----- Relational Operators -----
 ASSIGN    : '=' ;
 EQUAL     : '==' ;
 NEQ       : '!=' ;
@@ -98,15 +89,20 @@ LT        : '<' ;
 LE        : '<=' ;
 GT        : '>' ;
 GE        : '>=' ;
+
+// ----- Boolean Operators -----
 AND       : 'and';
 OR        : 'or';
 NOT       : 'not';
+
+// ----- Arithmetic Operators -----
 PLUS      : '+' ;
 MINUS     : '-' ;
 MUL       : '*';
 DIV       : '/';
 MOD		  : '%';
 
+// ----- Types -----
 VAR       : 'var';
 INT       : 'int';
 FLOAT     : 'float';
@@ -114,6 +110,7 @@ BOOL      : 'bool';
 CHAR      : 'char';
 ARRAY     : 'array' ;
 
+// ----- Statements -----
 IF        : 'if' ;
 THEN      : 'then' ;
 ELSE      : 'else' ;
@@ -121,13 +118,17 @@ ENDIF     : 'endif' ;
 WHILE     : 'while';
 ENDWHILE  : 'endwhile';
 
+// ----- Functions -----
 FUNC      : 'func' ;
 ENDFUNC   : 'endfunc' ;
 RETURN    : 'return' ;
 
+// ----- Input/Output -----
 READ      : 'read' ;
 WRITE     : 'write' ;
 
+
+// ----- Values -----
 ID        : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')* ;
 INTVAL    : ('0'..'9')+ ;
 FLOATVAL  : ('0'..'9')+ '.' ('0'..'9')+;

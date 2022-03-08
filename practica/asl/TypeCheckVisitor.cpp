@@ -93,26 +93,28 @@ antlrcpp::Any TypeCheckVisitor::visitFunction(AslParser::FunctionContext *ctx) {
   return 0;
 }
 
-// antlrcpp::Any TypeCheckVisitor::visitDeclarations(AslParser::DeclarationsContext *ctx) {
-//   DEBUG_ENTER();
-//   antlrcpp::Any r = visitChildren(ctx);
-//   DEBUG_EXIT();
-//   return r;
-// }
+//els 3 de sota estaven comentats
+antlrcpp::Any TypeCheckVisitor::visitDeclarations(AslParser::DeclarationsContext *ctx) {
+	DEBUG_ENTER();
+	antlrcpp::Any r = visitChildren(ctx);
+	DEBUG_EXIT();
+	return r;
+}
 
-// antlrcpp::Any TypeCheckVisitor::visitVariable_decl(AslParser::Variable_declContext *ctx) {
-//   DEBUG_ENTER();
-//   antlrcpp::Any r = visitChildren(ctx);
-//   DEBUG_EXIT();
-//   return r;
-// }
+antlrcpp::Any TypeCheckVisitor::visitVariable_decl(AslParser::Variable_declContext *ctx) {
+	DEBUG_ENTER();
+	antlrcpp::Any r = visitChildren(ctx);
+	DEBUG_EXIT();
+	return r;
+}
 
-// antlrcpp::Any TypeCheckVisitor::visitType(AslParser::TypeContext *ctx) {
-//   DEBUG_ENTER();
-//   antlrcpp::Any r = visitChildren(ctx);
-//   DEBUG_EXIT();
-//   return r;
-// }
+antlrcpp::Any TypeCheckVisitor::visitType(AslParser::TypeContext *ctx) {
+   DEBUG_ENTER();
+   antlrcpp::Any r = visitChildren(ctx);
+   DEBUG_EXIT();
+   return r;
+}
+//fins aquí
 
 antlrcpp::Any TypeCheckVisitor::visitStatements(AslParser::StatementsContext *ctx) {
   DEBUG_ENTER();
