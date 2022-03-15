@@ -10,11 +10,11 @@ program : function+ EOF
 
 // A function has a name, a list of parameters and a list of statements
 function
-        : FUNC ID '(' func_params ')' (':' type)? declarations statements ENDFUNC
+        : FUNC ID '(' func_params? ')' (':' type)? declarations statements ENDFUNC
         ;
         
 func_params
-        : ( | ID ':' type (',' ID ':' type)*)
+        : ID ':' type (',' ID ':' type)*
         ;
 
 declarations

@@ -68,7 +68,7 @@ antlrcpp::Any SymbolsVisitor::visitProgram(AslParser::ProgramContext *ctx) {
   for (auto ctxFunc : ctx->function()) { 
     visit(ctxFunc);
   }
-  // Symbols.print();
+  Symbols.print();
   Symbols.popScope();
   DEBUG_EXIT();
   return 0;
@@ -79,31 +79,32 @@ antlrcpp::Any SymbolsVisitor::visitFunction(AslParser::FunctionContext *ctx) {
   std::string funcName = ctx->ID()->getText();
   SymTable::ScopeId sc = Symbols.pushNewScope(funcName);
   putScopeDecor(ctx, sc);
-  // Symbols.print();
+  //Symbols.print();
   Symbols.popScope();
   std::string ident = ctx->ID()->getText();
   if (Symbols.findInCurrentScope(ident)) {
     Errors.declaredIdent(ctx->ID());
   }
   else {
-  
+    std::vector<TypesMgr::TypeId> lParamsTy; // PARAMETER types
+    if (ctx->func_params() != NULL) {
+		visit(ctx->func_params());
+		for (auto i : ctx->func_params()->type()) {
+		   lParamsTy.push_back(getTypeDecor(i));
+		}
+    }
+    
     TypesMgr::TypeId tRet; // RETURN type
     if (ctx->type() != NULL) {
       visit(ctx->type());
       tRet = getTypeDecor(ctx->type());
-  }
-    else 
-      tRet = Types.createVoidTy();
-
-    std::vector<TypesMgr::TypeId> lParamsTy; // PARAMETER types
-    for (auto i : ctx->func_params()->type()) {
-	  visit(ctx->func_params());
-      lParamsTy.push_back(getTypeDecor(i));
-    } 
+    }
+    else tRet = Types.createVoidTy();
 
     TypesMgr::TypeId tFunc = Types.createFunctionTy(lParamsTy, tRet);
     Symbols.addFunction(ident, tFunc);
   }
+  visit(ctx->declarations());
   DEBUG_EXIT();
   return 0;
 }
@@ -133,11 +134,10 @@ antlrcpp::Any SymbolsVisitor::visitVariable_decl(AslParser::Variable_declContext
   DEBUG_ENTER();
   visit(ctx->type());
   TypesMgr::TypeId t = getTypeDecor(ctx->type());
-  std::cout << t << std::endl;
   for(auto i : ctx->ID()){
 	  std::string ident = i->getText();
 	  if (Symbols.findInCurrentScope(ident)) Errors.declaredIdent(i);
-	  Symbols.addLocalVar(ident, t);
+	  else Symbols.addLocalVar(ident, t);
   } 
   DEBUG_EXIT();
   return 0;
@@ -180,19 +180,19 @@ antlrcpp::Any SymbolsVisitor::visitBasic_type(AslParser::Basic_typeContext *ctx)
   return 0;
 }
 
-// antlrcpp::Any SymbolsVisitor::visitStatements(AslParser::StatementsContext *ctx) {
-//   DEBUG_ENTER();
-//   antlrcpp::Any r = visitChildren(ctx);
-//   DEBUG_EXIT();
-//   return r;
-// }
+ antlrcpp::Any SymbolsVisitor::visitStatements(AslParser::StatementsContext *ctx) {
+   DEBUG_ENTER();
+   antlrcpp::Any r = visitChildren(ctx);
+   DEBUG_EXIT();
+   return r;
+ }
 
-// antlrcpp::Any SymbolsVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx) {
-//   DEBUG_ENTER();
-//   antlrcpp::Any r = visitChildren(ctx);
-//   DEBUG_EXIT();
-//   return r;
-// }
+ antlrcpp::Any SymbolsVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx) {
+   DEBUG_ENTER();
+   antlrcpp::Any r = visitChildren(ctx);
+   DEBUG_EXIT();
+   return r;
+ }
 
 // antlrcpp::Any SymbolsVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
 //   DEBUG_ENTER();
