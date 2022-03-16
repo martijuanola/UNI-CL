@@ -129,10 +129,10 @@ WRITE     : 'write' ;
 
 
 // ----- Values -----
+BOOLVAL   : 'true' | 'false';
 ID        : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')* ;
 INTVAL    : ('0'..'9')+ ;
 FLOATVAL  : ('0'..'9')+ '.' ('0'..'9')+;
-BOOLVAL   : 'true' | 'false';
 CHARVAL   : '\'' ( ESC_SEQ | ~('\\'|'"') ) '\'';
 
 // Strings (in quotes) with escape sequences
