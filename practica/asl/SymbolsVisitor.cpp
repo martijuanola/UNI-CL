@@ -194,12 +194,19 @@ antlrcpp::Any SymbolsVisitor::visitBasic_type(AslParser::Basic_typeContext *ctx)
    return r;
  }
 
-// antlrcpp::Any SymbolsVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
-//   DEBUG_ENTER();
-//   antlrcpp::Any r = visitChildren(ctx);
-//   DEBUG_EXIT();
-//   return r;
-// }
+antlrcpp::Any SymbolsVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
+ DEBUG_ENTER();
+ antlrcpp::Any r = visitChildren(ctx);
+ DEBUG_EXIT();
+ return r;
+}
+
+antlrcpp::Any SymbolsVisitor::visitWhileStmt(AslParser::WhileStmtContext *ctx) {
+ DEBUG_ENTER();
+ antlrcpp::Any r = visitChildren(ctx);
+ DEBUG_EXIT();
+ return r;
+}
 
 // antlrcpp::Any SymbolsVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
 //   DEBUG_ENTER();
