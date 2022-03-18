@@ -121,7 +121,7 @@ antlrcpp::Any TypeCheckVisitor::visitStatements(AslParser::StatementsContext *ct
   visitChildren(ctx);
   DEBUG_EXIT();
   return 0;
-}
+} 
 
 antlrcpp::Any TypeCheckVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx) {
   DEBUG_ENTER();
@@ -150,10 +150,29 @@ antlrcpp::Any TypeCheckVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
   TypesMgr::TypeId t1 = getTypeDecor(ctx->expr());
   if ((not Types.isErrorTy(t1)) and (not Types.isBooleanTy(t1)))
     Errors.booleanRequired(ctx);
+  else{
+    bool b = getIsLValueDecor(ctx->expr());
+    if(b) visit(ctx->statements(0));
+    else visit(ctx->statements(1));
+  }
   
-  bool b = getIsLValueDecor(ctx->expr());
-  if(b) visit(ctx->statements(0));
-  else visit(ctx->statements(1));
+  DEBUG_EXIT();
+  return 0;
+}
+
+antlrcpp::Any TypeCheckVisitor::visitWhileStmt(AslParser::WhileStmtContext *ctx) {
+  DEBUG_ENTER();
+  visit(ctx->expr());
+  TypesMgr::TypeId t1 = getTypeDecor(ctx->expr());
+  if ((not Types.isErrorTy(t1)) and (not Types.isBooleanTy(t1)))
+    Errors.booleanRequired(ctx);
+  else{
+    bool b = getIsLValueDecor(ctx->expr());
+    while(b){
+      visit(ctx->statements());
+      b = getIsLValueDecor(ctx->expr());
+    } 
+  }
   
   DEBUG_EXIT();
   return 0;
@@ -193,12 +212,12 @@ antlrcpp::Any TypeCheckVisitor::visitWriteExpr(AslParser::WriteExprContext *ctx)
   return 0;
 }
 
-// antlrcpp::Any TypeCheckVisitor::visitWriteString(AslParser::WriteStringContext *ctx) {
-//   DEBUG_ENTER();
-//   antlrcpp::Any r = visitChildren(ctx);
-//   DEBUG_EXIT();
-//   return r;
-// }
+antlrcpp::Any TypeCheckVisitor::visitWriteString(AslParser::WriteStringContext *ctx) {
+  DEBUG_ENTER();
+  antlrcpp::Any r = visitChildren(ctx);
+  DEBUG_EXIT();
+  return r;
+}
 
 antlrcpp::Any TypeCheckVisitor::visitLeft_expr(AslParser::Left_exprContext *ctx) {
   DEBUG_ENTER();
@@ -296,9 +315,9 @@ antlrcpp::Any TypeCheckVisitor::visitValue(AslParser::ValueContext *ctx) {
   DEBUG_ENTER();
   TypesMgr::TypeId t;
   if(ctx->INTVAL()) t = Types.createIntegerTy();
-  if(ctx->FLOATVAL()) t = Types.createFloatTy();
-  if(ctx->CHARVAL()) t = Types.createCharacterTy();
-  if(ctx->BOOLVAL()) t = Types.createBooleanTy();
+  else if(ctx->FLOATVAL()) t = Types.createFloatTy();
+  else if(ctx->CHARVAL()) t = Types.createCharacterTy();
+  else if(ctx->BOOLVAL()) t = Types.createBooleanTy();
   putTypeDecor(ctx, t);
   putIsLValueDecor(ctx, false);
   DEBUG_EXIT();
@@ -319,6 +338,7 @@ antlrcpp::Any TypeCheckVisitor::visitExprIdent(AslParser::ExprIdentContext *ctx)
 antlrcpp::Any TypeCheckVisitor::visitIdent(AslParser::IdentContext *ctx) {
   DEBUG_ENTER();
   std::string ident = ctx->getText();
+  //if(ident=="true" or ident=="false") std::cout << "boooooool" << std::endl;
   if (Symbols.findInStack(ident) == -1) {
     Errors.undeclaredIdent(ctx->ID());
     TypesMgr::TypeId te = Types.createErrorTy();
