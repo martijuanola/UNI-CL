@@ -44,9 +44,9 @@ statements
 // The different types of instructions
 statement
         : left_expr ASSIGN expr ';'           				# assignStmt
-        | IF expr THEN statements (ELSE statements)? ENDIF  # ifStmt
+        | IF expr THEN statements (ELSE statements)? ENDIF              # ifStmt
         | WHILE expr 'do' statements ENDWHILE 				# whileStmt
-        | ident '(' (expr (',' expr)*)? ')' ';'             # procCall
+        | ident '(' (expr (',' expr)*)? ')' ';'                         # procCall
         | RETURN expr? ';'                    				# returnStmt
         | READ left_expr ';'                  				# readStmt
         | WRITE expr ';'                      				# writeExpr
