@@ -1,0 +1,3 @@
+Dubtes:
+- cal guardar/calcular valors en assignacions etc?
+- cal executar bucles o ifs?

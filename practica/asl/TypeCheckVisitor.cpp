@@ -130,11 +130,13 @@ antlrcpp::Any TypeCheckVisitor::visitAssignStmt(AslParser::AssignStmtContext *ct
   TypesMgr::TypeId t1 = getTypeDecor(ctx->left_expr());
   TypesMgr::TypeId t2 = getTypeDecor(ctx->expr());
   
+  //REMOVE AFTER DEBUGING
   std::cout << "(";
   Types.dump(t1,std::cout);
   std::cout << " , ";
   Types.dump(t2,std::cout);
   std::cout << ")" << std::endl;
+  
   if ((not Types.isErrorTy(t1)) and (not Types.isErrorTy(t2)) and
       (not Types.copyableTypes(t1, t2)))
     Errors.incompatibleAssignment(ctx->ASSIGN());
@@ -148,14 +150,9 @@ antlrcpp::Any TypeCheckVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
   DEBUG_ENTER();
   visit(ctx->expr());
   TypesMgr::TypeId t1 = getTypeDecor(ctx->expr());
-  if ((not Types.isErrorTy(t1)) and (not Types.isBooleanTy(t1)))
-    Errors.booleanRequired(ctx);
-  else{
-    bool b = getIsLValueDecor(ctx->expr());
-    if(b) visit(ctx->statements(0));
-    else visit(ctx->statements(1));
-  }
-  
+  if ((not Types.isErrorTy(t1)) and (not Types.isBooleanTy(t1))) Errors.booleanRequired(ctx);    
+  visit(ctx->statements(0));
+  if(ctx->statements(1)) visit(ctx->statements(1));
   DEBUG_EXIT();
   return 0;
 }
@@ -166,14 +163,7 @@ antlrcpp::Any TypeCheckVisitor::visitWhileStmt(AslParser::WhileStmtContext *ctx)
   TypesMgr::TypeId t1 = getTypeDecor(ctx->expr());
   if ((not Types.isErrorTy(t1)) and (not Types.isBooleanTy(t1)))
     Errors.booleanRequired(ctx);
-  else{
-    bool b = getIsLValueDecor(ctx->expr());
-    while(b){
-      visit(ctx->statements());
-      b = getIsLValueDecor(ctx->expr());
-    } 
-  }
-  
+  visit(ctx->statements());
   DEBUG_EXIT();
   return 0;
 }
@@ -222,6 +212,23 @@ antlrcpp::Any TypeCheckVisitor::visitWriteString(AslParser::WriteStringContext *
 antlrcpp::Any TypeCheckVisitor::visitLeft_expr(AslParser::Left_exprContext *ctx) {
   DEBUG_ENTER();
   visit(ctx->ident());
+  /*if(ctx->expr()) {
+	  //Acces a variable que no és array
+	  TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
+	  if((not Types.isErrorTy(t1)) and (not Types.isArrayTy(t1)))
+	    Errors.nonArrayInArrayAccess(ctx);
+	    
+	  //acces amb valor que no és int
+	  visit(ctx->expr());
+	  TypesMgr::TypeId t2 = getTypeDecor(ctx->expr());
+	  if((not Types.isErrorTy(t2)) and (not Types.isIntegerTy(t2)))
+	    Errors.nonIntegerIndexInArrayAccess(ctx);
+	    
+	  //accions que s'han de fer normalment?(nose si cal posar-ho amb elses)
+	  putTypeDecor(ctx, Types.getArrayElemType(t1));
+	  //bool b = getIsLValueDecor(ctx->ident());
+	  //putIsLValueDecor(ctx, b);
+  }*/
   TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
   putTypeDecor(ctx, t1);
   bool b = getIsLValueDecor(ctx->ident());
@@ -338,7 +345,6 @@ antlrcpp::Any TypeCheckVisitor::visitExprIdent(AslParser::ExprIdentContext *ctx)
 antlrcpp::Any TypeCheckVisitor::visitIdent(AslParser::IdentContext *ctx) {
   DEBUG_ENTER();
   std::string ident = ctx->getText();
-  //if(ident=="true" or ident=="false") std::cout << "boooooool" << std::endl;
   if (Symbols.findInStack(ident) == -1) {
     Errors.undeclaredIdent(ctx->ID());
     TypesMgr::TypeId te = Types.createErrorTy();
