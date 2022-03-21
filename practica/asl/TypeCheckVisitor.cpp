@@ -93,6 +93,8 @@ antlrcpp::Any TypeCheckVisitor::visitFunction(AslParser::FunctionContext *ctx) {
   return 0;
 }
 
+// hauria d'anar func params?????
+
 //els 3 de sota estaven comentats
 antlrcpp::Any TypeCheckVisitor::visitDeclarations(AslParser::DeclarationsContext *ctx) {
 	DEBUG_ENTER();
@@ -219,7 +221,7 @@ antlrcpp::Any TypeCheckVisitor::visitLeft_expr(AslParser::Left_exprContext *ctx)
 	  if((not Types.isErrorTy(t1)) and (not Types.isArrayTy(t1))) {
 	    Errors.nonArrayInArrayAccess(ctx);
 	    error = true;
-	}
+	  }
 	    
 	  //acces amb valor que no és int
 	  visit(ctx->expr());
@@ -227,14 +229,14 @@ antlrcpp::Any TypeCheckVisitor::visitLeft_expr(AslParser::Left_exprContext *ctx)
 	  if((not Types.isErrorTy(t2)) and (not Types.isIntegerTy(t2))) {
 	    Errors.nonIntegerIndexInArrayAccess(ctx);
 	    error = true;
-	}
+	  }
 	    
 	  //accions que s'han de fer normalment?(nose si cal posar-ho amb elses)
 	  if(not error){
 		putTypeDecor(ctx, Types.getArrayElemType(t1));
 		bool b = getIsLValueDecor(ctx->ident());
 	    putIsLValueDecor(ctx, b);
-	}
+	  }
   }
   else {
 	  TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
@@ -340,7 +342,22 @@ antlrcpp::Any TypeCheckVisitor::visitValue(AslParser::ValueContext *ctx) {
   DEBUG_EXIT();
   return 0;
 }
+/*
+antlrcpp::Any TypeCheckVisitor::visitFuncCall(AslParser::FuncCallContext *ctx) {
+  DEBUG_ENTER();
+  visit(ctx->ident());
+  TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
+  if (not Types.isFunctionTy(t1) and not Types.isErrorTy(t1)) {
+    Errors.isNotCallable(ctx->ident());
+  }
+  if(ctx->expr()){
 
+  }
+
+  DEBUG_EXIT();
+  return 0;
+}
+*/
 antlrcpp::Any TypeCheckVisitor::visitExprIdent(AslParser::ExprIdentContext *ctx) {
   DEBUG_ENTER();
   visit(ctx->ident());
