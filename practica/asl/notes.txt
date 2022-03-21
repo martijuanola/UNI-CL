@@ -1,3 +1,8 @@
 Dubtes:
-- cal guardar/calcular valors en assignacions etc?
-- cal executar bucles o ifs?
+- cal guardar/calcular valors en assignacions etc? no
+- cal executar bucles o ifs? no
+
+- que fa getIsLValueDecor!!
+- esta bé la gramàtica en relació a les arrays i els ident/ID
+	- es podria treure com a una nova generació de variables
+- error del 6:4 del 5 surt a 6:2
