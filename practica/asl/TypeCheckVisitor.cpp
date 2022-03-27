@@ -87,6 +87,12 @@ antlrcpp::Any TypeCheckVisitor::visitFunction(AslParser::FunctionContext *ctx) {
   SymTable::ScopeId sc = getScopeDecor(ctx);
   Symbols.pushThisScope(sc);
   // Symbols.print();
+  
+  //recalculate return type for returnvisitor
+  if (ctx->type() != NULL) setCurrentFunctionTy(getTypeDecor(ctx->type()));
+  else setCurrentFunctionTy(Types.createVoidTy());
+  
+  
   visit(ctx->statements());
   Symbols.popScope();
   DEBUG_EXIT();
@@ -181,6 +187,28 @@ antlrcpp::Any TypeCheckVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
   return 0;
 }
 
+antlrcpp::Any TypeCheckVisitor::visitReturnStmt(AslParser::ReturnStmtContext *ctx) {
+  DEBUG_ENTER();
+  TypesMgr::TypeId t1 = getCurrentFunctionTy();
+  
+  if(ctx->expr()) {//returns something
+	  visit(ctx->expr());
+	  TypesMgr::TypeId t2 = getTypeDecor(ctx->expr());
+	  
+	  if(not Types.isErrorTy(t1) and not Types.isErrorTy(t2) and not Types.equalTypes(t1,t2)) {
+	    //cas especial amb return de int com a float(es permet)
+	    if(not (Types.isFloatTy(t1) and Types.isIntegerTy(t2)))
+	    Errors.incompatibleReturn(ctx->RETURN());
+	}
+  }
+  else {//void
+	  if(not Types.isErrorTy(t1) and not Types.isVoidTy(t1))
+		Errors.incompatibleReturn(ctx->RETURN());
+  }
+  DEBUG_EXIT();
+  return 0;	
+}
+
 antlrcpp::Any TypeCheckVisitor::visitReadStmt(AslParser::ReadStmtContext *ctx) {
   DEBUG_ENTER();
   visit(ctx->left_expr());
@@ -240,7 +268,8 @@ antlrcpp::Any TypeCheckVisitor::visitLeft_expr(AslParser::Left_exprContext *ctx)
   else {
 	  TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
 	  putTypeDecor(ctx, t1);
-	  putIsLValueDecor(ctx, true);
+	  bool b1 = getIsLValueDecor(ctx->ident());
+	  putIsLValueDecor(ctx,b1);
   }
   
   DEBUG_EXIT();
@@ -352,9 +381,8 @@ antlrcpp::Any TypeCheckVisitor::visitFuncCall(AslParser::FuncCallContext *ctx) {
     TypesMgr::TypeId tr = Types.getFuncReturnType(t1);
     if(Types.isVoidTy(tr)) Errors.isNotFunction(ctx->ident());
     else putTypeDecor(ctx, tr);
-	  putIsLValueDecor(ctx, false);
+	putIsLValueDecor(ctx, false);
   }
-  
   DEBUG_EXIT();
   return 0;
 }
