@@ -183,6 +183,11 @@ antlrcpp::Any TypeCheckVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
   if (not Types.isFunctionTy(t1) and not Types.isErrorTy(t1)) {
     Errors.isNotCallable(ctx->ident());
   }
+  
+  //FALTA AIXÒ!!!!
+  //comprovar return type(ha de ser void)
+  //comprovar parametres
+  
   DEBUG_EXIT();
   return 0;
 }
@@ -242,32 +247,28 @@ antlrcpp::Any TypeCheckVisitor::visitWriteString(AslParser::WriteStringContext *
 antlrcpp::Any TypeCheckVisitor::visitLeft_expr(AslParser::Left_exprContext *ctx) {
   DEBUG_ENTER();
   visit(ctx->ident());
-  if(ctx->expr()) {
-	  bool error = false;
-	  //Acces a variable que no és array
-	  TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
-	  if((not Types.isErrorTy(t1)) and (not Types.isArrayTy(t1))) {
-	    Errors.nonArrayInArrayAccess(ctx);
-	    error = true;
-	  }
-	    
-	  //acces amb valor que no és int
+  TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
+  if(ctx->expr()) { //Array
 	  visit(ctx->expr());
 	  TypesMgr::TypeId t2 = getTypeDecor(ctx->expr());
-	  if((not Types.isErrorTy(t2)) and (not Types.isIntegerTy(t2))) {
+	  
+	  //No és tipus array
+	  if(not Types.isErrorTy(t1) and (not Types.isArrayTy(t1))) {
+	    Errors.nonArrayInArrayAccess(ctx);
+	  }
+	  else if(not Types.isErrorTy(t1)) putTypeDecor(ctx, Types.getArrayElemType(t1));
+	  //s'ha de comprovar que no sigui error que sino peta
+	  
+	  
+	  //Expressió no és INT
+	  if((not Types.isErrorTy(t2)) and (not Types.isIntegerTy(t2)))
 	    Errors.nonIntegerIndexInArrayAccess(ctx->expr());
-	    error = true;
-	  }
-	    
-	  //accions que s'han de fer normalment?(nose si cal posar-ho amb elses)
-	  if(not error){
-		  putTypeDecor(ctx, Types.getArrayElemType(t1));
-	    putIsLValueDecor(ctx, true);
-	  }
+
+	  putIsLValueDecor(ctx, true);
   }
-  else {
-	  TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
+  else {//Variable o funció
 	  putTypeDecor(ctx, t1);
+	  //pots ser que sigui un ident de funció, s'ha de comprovar que sigui Lvalue
 	  bool b1 = getIsLValueDecor(ctx->ident());
 	  putIsLValueDecor(ctx,b1);
   }
@@ -374,15 +375,25 @@ antlrcpp::Any TypeCheckVisitor::visitFuncCall(AslParser::FuncCallContext *ctx) {
   DEBUG_ENTER();
   visit(ctx->ident());
   TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
+  
+  //Mirar si és funció
   if (not Types.isFunctionTy(t1) and not Types.isErrorTy(t1)) {
     Errors.isNotCallable(ctx->ident());
   }
-  else{
+  else{//Per mirar el tipus del return ha de ser funció(per això l'else)
     TypesMgr::TypeId tr = Types.getFuncReturnType(t1);
     if(Types.isVoidTy(tr)) Errors.isNotFunction(ctx->ident());
     else putTypeDecor(ctx, tr);
 	putIsLValueDecor(ctx, false);
   }
+  
+  //FALTA AIXÒ
+  //Comprovar els tipus de paràmetres
+  
+  //S'haurà de llançar aquest error
+  //Errors.referenceableParameter(*pCtx, unsigned int n, *cCtx)
+  
+  
   DEBUG_EXIT();
   return 0;
 }
@@ -390,34 +401,28 @@ antlrcpp::Any TypeCheckVisitor::visitFuncCall(AslParser::FuncCallContext *ctx) {
 antlrcpp::Any TypeCheckVisitor::visitExprIdent(AslParser::ExprIdentContext *ctx) {
   DEBUG_ENTER();
   visit(ctx->ident());
+  TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
   if(ctx->expr()) {
-	  bool error = false;
-	  //Acces a variable que no és array
-	  TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
-	  if((not Types.isErrorTy(t1)) and (not Types.isArrayTy(t1))) {
-	    Errors.nonArrayInArrayAccess(ctx);
-	    error = true;
-      putIsLValueDecor(ctx, true);
-	}
-	    
-	  //acces amb valor que no és int
 	  visit(ctx->expr());
 	  TypesMgr::TypeId t2 = getTypeDecor(ctx->expr());
-	  if((not Types.isErrorTy(t2)) and (not Types.isIntegerTy(t2))) {
-	    Errors.nonIntegerIndexInArrayAccess(ctx->expr());
-	    error = true;
-	}
-	    
-	  //accions que s'han de fer normalment?(nose si cal posar-ho amb elses)
-	  if(not error){
-		  putTypeDecor(ctx, Types.getArrayElemType(t1));
-      putIsLValueDecor(ctx, true);
+	  
+	  //No és tipus array
+	  if(not Types.isErrorTy(t1) and (not Types.isArrayTy(t1))) {
+	    Errors.nonArrayInArrayAccess(ctx);
 	  }
+	  else if(not Types.isErrorTy(t1)) putTypeDecor(ctx, Types.getArrayElemType(t1));
+	  //s'ha de comprovar que no sigui error que sino peta
+	  
+	  //Expressió no és INT
+	  if((not Types.isErrorTy(t2)) and (not Types.isIntegerTy(t2)))
+	    Errors.nonIntegerIndexInArrayAccess(ctx->expr());
+
+	  putIsLValueDecor(ctx, true);
   }
   else {
-	  TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
 	  putTypeDecor(ctx, t1);
-	  putIsLValueDecor(ctx, true);
+	  bool b1 = getIsLValueDecor(ctx->ident());
+	  putIsLValueDecor(ctx, b1);
   }
   DEBUG_EXIT();
   return 0;

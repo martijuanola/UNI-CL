@@ -1,8 +1,5 @@
-Dubtes:
-- cal guardar/calcular valors en assignacions etc? no
-- cal executar bucles o ifs? no
-
-- que fa getIsLValueDecor!!
-- esta bé la gramàtica en relació a les arrays i els ident/ID
-	- es podria treure com a una nova generació de variables
-- error del 6:4 del 5 surt a 6:2
+Dubtes i cosetes:
+- acabar visitProcCall
+- acabar visitFuncCall
+- ajuntar les dos funcions anteriors(han de ser quasi igual)
+- mirar com fer el type check dels paràmetres
