@@ -139,11 +139,11 @@ antlrcpp::Any TypeCheckVisitor::visitAssignStmt(AslParser::AssignStmtContext *ct
   TypesMgr::TypeId t2 = getTypeDecor(ctx->expr());
   
   //REMOVE AFTER DEBUGING
-  std::cout << "(";
+  /*std::cout << "(";
   Types.dump(t1,std::cout);
   std::cout << " , ";
   Types.dump(t2,std::cout);
-  std::cout << ")" << std::endl;
+  std::cout << ")" << std::endl;*/
   
   if ((not Types.isErrorTy(t1)) and (not Types.isErrorTy(t2)) and
       (not Types.copyableTypes(t1, t2)))
@@ -180,13 +180,44 @@ antlrcpp::Any TypeCheckVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
   DEBUG_ENTER();
   visit(ctx->ident());
   TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
-  if (not Types.isFunctionTy(t1) and not Types.isErrorTy(t1)) {
+  
+  int nparams;
+  int nargs;
+  bool error = false; // si t1 no és funció o si nparams != nargs
+  
+  if(not Types.isFunctionTy(t1) and not Types.isErrorTy(t1)) {
     Errors.isNotCallable(ctx->ident());
+    error = true;
   }
   
-  //FALTA AIXÒ!!!!
-  //comprovar return type(ha de ser void)
-  //comprovar parametres
+  if(Types.isFunctionTy(t1)){
+	  nparams = Types.getNumOfParameters(t1);
+	  nargs = ctx->expr().size();
+	  if(nparams != nargs) {
+		  Errors.numberOfParameters(ctx->ident());
+		  error = true;
+	  }
+  }
+
+  //Comprovar els tipus de paràmetres
+  int count = 0;
+  for (auto expr : ctx->expr()) { 
+	visit(expr);
+	
+	//Si hi ha algun error no es fa type check de paràmetres
+	if(not error and not Types.isErrorTy(t1)) {
+		TypesMgr::TypeId tp = Types.getParameterType(t1,count);
+		TypesMgr::TypeId te = getTypeDecor(expr);
+		
+		if(not Types.isErrorTy(tp) and not Types.isErrorTy(te) and not Types.equalTypes(tp,te)) { 
+			if(not (Types.isFloatTy(tp) and Types.isIntegerTy(te))) {
+			Errors.incompatibleParameter(expr, count+1, ctx->ident());
+			}
+		}
+	}
+	
+	count++;
+  }
   
   DEBUG_EXIT();
   return 0;
@@ -313,6 +344,11 @@ antlrcpp::Any TypeCheckVisitor::visitArithmetic(AslParser::ArithmeticContext *ct
       ((not Types.isErrorTy(t2)) and (not Types.isNumericTy(t2))))
     Errors.incompatibleOperator(ctx->op);
   
+  //El modul només funciona amb INTS
+  if(ctx->MOD() and (Types.isFloatTy(t1) or Types.isFloatTy(t2))) {
+	  Errors.incompatibleOperator(ctx->op);
+  }
+  
   TypesMgr::TypeId t;
   if(Types.isFloatTy(t1) or Types.isFloatTy(t2)) t = Types.createFloatTy();
   else t = Types.createIntegerTy();
@@ -376,24 +412,51 @@ antlrcpp::Any TypeCheckVisitor::visitFuncCall(AslParser::FuncCallContext *ctx) {
   visit(ctx->ident());
   TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
   
+  int nparams;
+  int nargs;
+  bool error = false; // si t1 no és funció o si nparams != nargs
+  
   //Mirar si és funció
   if (not Types.isFunctionTy(t1) and not Types.isErrorTy(t1)) {
     Errors.isNotCallable(ctx->ident());
+    error = true;
   }
-  else{//Per mirar el tipus del return ha de ser funció(per això l'else)
-    TypesMgr::TypeId tr = Types.getFuncReturnType(t1);
+
+  
+  if(Types.isFunctionTy(t1)) {
+	TypesMgr::TypeId tr = Types.getFuncReturnType(t1);
     if(Types.isVoidTy(tr)) Errors.isNotFunction(ctx->ident());
     else putTypeDecor(ctx, tr);
 	putIsLValueDecor(ctx, false);
+	
+	  nparams = Types.getNumOfParameters(t1);
+	  nargs = ctx->expr().size();
+	  if(nparams != nargs) {
+		  Errors.numberOfParameters(ctx->ident());
+		  error = true;
+	  }
   }
-  
-  //FALTA AIXÒ
+
   //Comprovar els tipus de paràmetres
-  
-  //S'haurà de llançar aquest error
-  //Errors.referenceableParameter(*pCtx, unsigned int n, *cCtx)
-  
-  
+  int count = 0;
+  for (auto expr : ctx->expr()) { 
+	visit(expr);
+	
+	//Si no concorden nombre de parametres no es fa el type check
+	if(not error and not Types.isErrorTy(t1)) {
+		TypesMgr::TypeId tp = Types.getParameterType(t1,count);
+		TypesMgr::TypeId te = getTypeDecor(expr);
+		
+		if(not Types.isErrorTy(tp) and not Types.isErrorTy(te) and not Types.equalTypes(tp,te)) { 
+			if(not (Types.isFloatTy(tp) and Types.isIntegerTy(te))) {
+			Errors.incompatibleParameter(expr, count+1, ctx->ident());
+			}
+		}
+	}
+	
+	count++;
+  }
+
   DEBUG_EXIT();
   return 0;
 }
