@@ -1,0 +1,5 @@
+Line 9:2 error: The number of items mismatch wrt. array size in pack/unpack.
+Line 11:13 error: Operator '+' with incompatible types.
+Line 12:2 error: The number of items mismatch wrt. array size in pack/unpack.
+Line 13:26 error: Array access with non integer index.
+Line 15:2 error: The number of items mismatch wrt. array size in pack/unpack.

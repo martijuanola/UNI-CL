@@ -1,4 +1,4 @@
-## To execute:
+## To compile:
 
 #### DISC UPC:
 
@@ -35,6 +35,16 @@ ANTLR_ROOT := /usr
 ```bash
 export LD_LIBRARY_PATH=/usr
 ```
+
+
+## To execute:
+
+#### Individual Tests:
+```shell
+./asl ../jps/jp_chkt_01.asl
+```
+
+
 
 
 

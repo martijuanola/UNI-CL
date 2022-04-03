@@ -1,0 +1,7 @@
+Line 9:13 error: Operator '+' with incompatible types.
+Line 10:2 error: Tuple access to a non tuple operand.
+Line 11:9 error: Tuple access to a non tuple operand.
+Line 12:2 error: Instruction 'if' requires a boolean condition.
+Line 14:7 error: Assignment with incompatible types.
+Line 16:15 error: Tuple access to a non tuple operand.
+Line 17:2 error: Tuple access to a non tuple operand.
