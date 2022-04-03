@@ -1,0 +1,26 @@
+  
+Type Manager
+------------
+
+This class stores information about all types existing in a program. A *type* stores
+information required to perform type checking.
+
+Note that this includes not only primitive types, but programmer-defined types such as *array of 10 integers*
+or *function that receives a boolean and an array of 5 char and returns an integer*.
+
+Thus, class ``TypesMgr`` class stores all seen types, and offers methods to find out information about them
+when we are type checking or generating code. For instance:
+
+ - *is type X an array?*
+ - *is type X the same than type Y?*
+ - *is type X compatible with type Y?*
+ - *which type have the elements of type X?* (when *X* is an array type, obviously)
+ - *which type returns type X?* (when *X* is a function type, obviously)
+
+Here is the whole definition of ``TypesMgr``. Check the comments to find out what each method does.
+
+.. literalinclude:: ../../../practica/common/TypesMgr.h
+   :language: c++
+   :linenos:
+   :lines: 40-115,220
+

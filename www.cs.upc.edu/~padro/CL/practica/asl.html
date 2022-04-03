@@ -1,0 +1,352 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>ASL Description &#8212; CL Lab Project 2022 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ASL Modules" href="modules.html" />
+    <link rel="prev" title="Lab Project of Compilers - FIB UPC, 2022" href="project.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modules.html" title="ASL Modules"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="project.html" title="Lab Project of Compilers - FIB UPC, 2022"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CL Lab Project 2022 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="project.html" accesskey="U">Lab Project of Compilers - FIB UPC, 2022</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">ASL Description</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="asl-description">
+<h1><span class="target" id="index-0"></span>ASL Description<a class="headerlink" href="#asl-description" title="Permalink to this headline">¶</a></h1>
+<p>You must build a compiler of ASL (<em>A Simple Language</em>), an imperative high-level programming language with the basic data types (integer, boolean, character, float), usual control structures (if-then-else, while, functions, …), and arrays (one-dimension, basic type elements).</p>
+<p>Here you will find a definition of the syntax of the language, and the expected behavior of the compiler in most frequent situations.</p>
+<p>You will be provided example test suites with the errors that the compiler is expected to produce in each case.</p>
+<hr class="docutils" />
+<section id="data-types-and-variable-declarations">
+<h2>Data types and variable declarations<a class="headerlink" href="#data-types-and-variable-declarations" title="Permalink to this headline">¶</a></h2>
+<p>Variables must be declared before being used.
+Variable declarations can appear exclusively at the beggining of a function, and have the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">var</span> <span class="n">id1</span><span class="p">,</span> <span class="n">id2</span><span class="p">,</span> <span class="o">..</span><span class="p">,</span> <span class="n">idn</span> <span class="p">:</span> <span class="nb">type</span>
+</pre></div>
+</div>
+<p>Valid identifiers start by a letter, optionally followed by any string made of letters, digits, or underscores.
+Valid types for variables include basic –or primitive– types, as well as arrays.</p>
+<p>Basic types are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">int</span></code> : Integer</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">float</span></code> : Real</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bool</span></code> : Boolean</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">char</span></code> : Character</p></li>
+</ul>
+<p>Arrays can contain elements of basic types only, and are defined as follows:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">array</span> <span class="pre">[&lt;size&gt;]</span> <span class="pre">of</span> <span class="pre">&lt;type&gt;</span></code></dt><dd><p>(where <code class="docutils literal notranslate"><span class="pre">&lt;size&gt;</span></code> is an integer constant determining the number of elements and <code class="docutils literal notranslate"><span class="pre">&lt;type&gt;</span></code> is a basic type).</p>
+</dd>
+</dl>
+<p>Examples of declarations:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">var</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="p">:</span> <span class="nb">int</span>
+<span class="n">var</span> <span class="n">a3</span><span class="p">,</span> <span class="n">b_2</span><span class="p">,</span> <span class="n">c3_x_</span> <span class="p">:</span> <span class="nb">bool</span>
+<span class="n">var</span> <span class="n">x</span> <span class="p">:</span> <span class="nb">float</span>
+<span class="n">var</span> <span class="n">p</span><span class="p">,</span> <span class="n">q</span> <span class="p">:</span> <span class="n">array</span> <span class="p">[</span><span class="mi">10</span><span class="p">]</span> <span class="n">of</span> <span class="n">char</span>
+</pre></div>
+</div>
+<p>Literal values of type <code class="docutils literal notranslate"><span class="pre">int</span></code> consist of one or more digits.</p>
+<p>Literal values of type <code class="docutils literal notranslate"><span class="pre">float</span></code> consist of one or more digits followed by a decimal point, followed by one or more digits.</p>
+<p>Literal values of type <code class="docutils literal notranslate"><span class="pre">bool</span></code> are <code class="docutils literal notranslate"><span class="pre">true</span></code> and <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p>
+<p>Literal values of type <code class="docutils literal notranslate"><span class="pre">char</span></code> are enclosed in single quotes, e.g. <code class="docutils literal notranslate"><span class="pre">'a'</span></code>, <code class="docutils literal notranslate"><span class="pre">'5'</span></code>, <code class="docutils literal notranslate"><span class="pre">'&#64;'</span></code>. Escaped characters <code class="docutils literal notranslate"><span class="pre">'\n'</span></code>, <code class="docutils literal notranslate"><span class="pre">'\t'</span></code>, and <code class="docutils literal notranslate"><span class="pre">'\''</span></code> are allowed.</p>
+</section>
+<hr class="docutils" />
+<section id="functions-parameters-and-results">
+<h2>Functions, parameters, and results<a class="headerlink" href="#functions-parameters-and-results" title="Permalink to this headline">¶</a></h2>
+<p>Functions are declared using keywords <code class="docutils literal notranslate"><span class="pre">func</span></code> and <code class="docutils literal notranslate"><span class="pre">endfunc</span></code>.
+A comma-separated list of parameters (which maybe empty) is defined in parenthesis after the function name. For each parameter, name and type must be provided (i.e. brief parameter declaration of the form <code class="docutils literal notranslate"><span class="pre">x,y:int</span></code> is not allowed).</p>
+<p>Finally, the return type of the function (if any) is declared after a colon.
+Functions can only return basic types.</p>
+<p>All parameters are passed by value, except arrays, which are passed by reference.</p>
+<p>Integer values can be passed as arguments to float parameters, in which case an implicit conversion to float is performed.</p>
+<p>Declaration of local variables is located at the beggining of the function, following by the instructions in the function body.</p>
+<p>Functions (either void or not) may include <code class="docutils literal notranslate"><span class="pre">return</span></code> instructions at any point, with an argument of the appropriate type (or nothing for void functions). Integer values can be returned inside float functions, and an implicit cast is performed.</p>
+<p>Example of a function with boolean result:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">func</span> <span class="n">fun1</span> <span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">array</span> <span class="p">[</span><span class="mi">10</span><span class="p">]</span> <span class="n">of</span> <span class="nb">int</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="p">:</span> <span class="nb">bool</span>
+  <span class="n">var</span> <span class="n">i</span> <span class="p">:</span> <span class="nb">int</span>
+  <span class="n">var</span> <span class="n">x</span> <span class="p">:</span> <span class="nb">bool</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+  <span class="k">if</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="n">b</span> <span class="n">then</span>
+     <span class="k">return</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">!=</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">];</span>
+  <span class="k">else</span>
+     <span class="n">x</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+     <span class="k">return</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">or</span> <span class="n">x</span><span class="p">;</span>
+  <span class="n">endif</span>
+
+<span class="n">endfunc</span>
+</pre></div>
+</div>
+<p>Example of a <em>void</em> function:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">func</span> <span class="n">fun2</span> <span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">array</span> <span class="p">[</span><span class="mi">10</span><span class="p">]</span> <span class="n">of</span> <span class="nb">int</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span>
+  <span class="n">var</span> <span class="n">i</span> <span class="p">:</span> <span class="nb">int</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+  <span class="k">if</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="n">b</span> <span class="n">then</span>
+    <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">];</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="k">else</span>
+     <span class="n">x</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">endif</span>
+
+  <span class="k">return</span><span class="p">;</span>
+<span class="n">endfunc</span>
+</pre></div>
+</div>
+<p>Functions that do not return a value can be called only as instructions.
+Functions returning a value can be called either inside expressions, or as instructions. In the later case, the return value is ignored.</p>
+</section>
+<hr class="docutils" />
+<section id="operators-and-precedence">
+<h2>Operators and precedence<a class="headerlink" href="#operators-and-precedence" title="Permalink to this headline">¶</a></h2>
+<p>ASL supports all usual aritmethic, relational, and boolean operators, with the following precedences and left associativity:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 77%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><em>Operation</em></p></th>
+<th class="head"><p><em>Precedence</em></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">[]</span></code></p></td>
+<td><p>Highest</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">not</span></code> <code class="docutils literal notranslate"><span class="pre">+</span></code> <code class="docutils literal notranslate"><span class="pre">-</span></code> (used as unary operators)</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">*</span></code> <code class="docutils literal notranslate"><span class="pre">/</span></code> <code class="docutils literal notranslate"><span class="pre">%</span></code></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">+</span></code> <code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">==</span></code> <code class="docutils literal notranslate"><span class="pre">!=</span></code> <code class="docutils literal notranslate"><span class="pre">&gt;</span></code> <code class="docutils literal notranslate"><span class="pre">&gt;=</span></code> <code class="docutils literal notranslate"><span class="pre">&lt;=</span></code> <code class="docutils literal notranslate"><span class="pre">&lt;</span></code></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">and</span></code></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">or</span></code></p></td>
+<td><p>Lowest</p></td>
+</tr>
+</tbody>
+</table>
+<p>All relational operators can be applied to all basic types, except booleans, that admit only <code class="docutils literal notranslate"><span class="pre">==</span></code> and <code class="docutils literal notranslate"><span class="pre">!=</span></code>.</p>
+<p>Numeric types (float and int) can also be compared (after performing an implicit conversion to float).</p>
+<p>Module operation (<code class="docutils literal notranslate"><span class="pre">%</span></code>) can only be applied to integer operands. The expected behaviour for negative operands is the same than in C++.</p>
+<p>When integer values are aritmethically operated with float values, an implicit conversion to float is performed before the actual operation, and the result of the operation has type float.</p>
+</section>
+<hr class="docutils" />
+<section id="basic-instructions">
+<h2>Basic instructions<a class="headerlink" href="#basic-instructions" title="Permalink to this headline">¶</a></h2>
+<p>Basic instructions include assignment, <code class="docutils literal notranslate"><span class="pre">return</span></code> statement, and read/write statements.
+All basic instructions must end in a semicolon <code class="docutils literal notranslate"><span class="pre">;</span></code></p>
+<section id="assignment">
+<h3>Assignment<a class="headerlink" href="#assignment" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">var</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="p">:</span> <span class="nb">int</span>
+<span class="n">var</span> <span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">c</span> <span class="p">:</span> <span class="n">array</span> <span class="p">[</span><span class="mi">10</span><span class="p">]</span> <span class="n">of</span> <span class="nb">int</span>
+<span class="n">x</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="n">y</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="p">;</span>
+<span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="o">*</span><span class="mi">2</span> <span class="o">-</span> <span class="n">b</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">a</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Both primitive types and arrays can be assigned.</p>
+<p>Integer values can be assigned to float variables after an implicit conversion (but not the other way round).</p>
+</section>
+<section id="input-output-statements">
+<h3>Input/output statements<a class="headerlink" href="#input-output-statements" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p><strong>Read</strong> : reads a value from the standard input and stores it in given l-value. If the type of the input data does not match the l-value, the behaviour is undefined.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">read</span> <span class="n">x</span><span class="p">;</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Write</strong> : prints to the standard output the value of given expression.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">write</span> <span class="n">x</span><span class="o">+</span><span class="mi">2</span><span class="p">;</span>
+<span class="n">write</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Output statement <code class="docutils literal notranslate"><span class="pre">write</span></code> accepts also a string literal. This is the only use of string allowed in ASL.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">write</span> <span class="s2">&quot;The result is: &quot;</span><span class="p">;</span>
+<span class="n">write</span> <span class="n">x</span><span class="o">+</span><span class="mi">2</span><span class="p">;</span>
+<span class="n">write</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">;</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+<section id="return-statement">
+<h3>Return statement<a class="headerlink" href="#return-statement" title="Permalink to this headline">¶</a></h3>
+<p>Return statement causes current function to stop execution and return to the caller. If the function has a return value, the result expression must be given as argument to the <code class="docutils literal notranslate"><span class="pre">return</span></code> instruction.</p>
+<p>This instruction can appear anywhere in a function.
+If the function contains paths not ending in a <code class="docutils literal notranslate"><span class="pre">return</span></code> instruction, the function will return an undefined value when reaching the end of its code.</p>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">func</span> <span class="n">f</span><span class="p">()</span> <span class="p">:</span> <span class="nb">bool</span>
+   <span class="o">...</span>
+   <span class="o">...</span>
+   <span class="k">return</span> <span class="n">x</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">b</span><span class="p">;</span>
+<span class="n">endfunc</span>
+
+
+<span class="n">func</span> <span class="n">g</span><span class="p">()</span>
+   <span class="o">...</span>
+   <span class="k">if</span> <span class="p">(</span><span class="n">err</span><span class="o">!=</span><span class="mi">0</span><span class="p">)</span> <span class="n">then</span> <span class="k">return</span><span class="p">;</span> <span class="n">endif</span>
+   <span class="o">...</span>
+<span class="n">endfunc</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="control-structures">
+<h2>Control structures<a class="headerlink" href="#control-structures" title="Permalink to this headline">¶</a></h2>
+<p>ASL has two control structures: one for alternative composition and one for iterative composition:</p>
+<ul>
+<li><p>Alternative composition: alternative statements can be built with
+keywords <code class="docutils literal notranslate"><span class="pre">if</span></code>, <code class="docutils literal notranslate"><span class="pre">then</span></code>, <code class="docutils literal notranslate"><span class="pre">else</span></code>, and <code class="docutils literal notranslate"><span class="pre">endif</span></code>.</p>
+<p>The condition must be of boolean type.
+The <code class="docutils literal notranslate"><span class="pre">else</span></code> branch is optional.</p>
+<p>Example of an <code class="docutils literal notranslate"><span class="pre">if-then-else</span></code> construction</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">a</span><span class="o">&gt;</span><span class="n">b</span> <span class="n">then</span>
+   <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="k">else</span>
+   <span class="n">x</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span><span class="p">;</span>
+<span class="n">endif</span>
+</pre></div>
+</div>
+<p>Examples of <code class="docutils literal notranslate"><span class="pre">if-then</span></code> constructions</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="o">&lt;</span><span class="mi">0</span> <span class="n">then</span>
+   <span class="n">a</span><span class="o">=</span><span class="n">b</span><span class="p">;</span>
+<span class="n">endif</span>
+</pre></div>
+</div>
+</li>
+<li><p>Iterative statements may be expressed with the <code class="docutils literal notranslate"><span class="pre">while-do-endwhile</span></code> construction</p>
+<p>The condition must be of boolean type.</p>
+<p>Example of <code class="docutils literal notranslate"><span class="pre">while-do-endwhile</span></code> construction</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="n">a</span><span class="o">&gt;</span><span class="mi">0</span> <span class="n">do</span>
+   <span class="n">s</span> <span class="o">=</span> <span class="n">s</span> <span class="o">+</span> <span class="n">a</span><span class="p">;</span>
+   <span class="n">a</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+<span class="n">endwhile</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">ASL Description</a><ul>
+<li><a class="reference internal" href="#data-types-and-variable-declarations">Data types and variable declarations</a></li>
+<li><a class="reference internal" href="#functions-parameters-and-results">Functions, parameters, and results</a></li>
+<li><a class="reference internal" href="#operators-and-precedence">Operators and precedence</a></li>
+<li><a class="reference internal" href="#basic-instructions">Basic instructions</a><ul>
+<li><a class="reference internal" href="#assignment">Assignment</a></li>
+<li><a class="reference internal" href="#input-output-statements">Input/output statements</a></li>
+<li><a class="reference internal" href="#return-statement">Return statement</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#control-structures">Control structures</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="project.html"
+                          title="previous chapter">Lab Project of Compilers - FIB UPC, 2022</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="modules.html"
+                          title="next chapter">ASL Modules</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/asl.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modules.html" title="ASL Modules"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="project.html" title="Lab Project of Compilers - FIB UPC, 2022"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CL Lab Project 2022 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="project.html" >Lab Project of Compilers - FIB UPC, 2022</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">ASL Description</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018-2022, Compilers. FIB, UPC..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.4.0.
+    </div>
+  </body>
+</html>

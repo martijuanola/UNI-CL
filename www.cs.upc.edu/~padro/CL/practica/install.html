@@ -1,0 +1,256 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Installing ANTLR4 in your Linux &#8212; CL Lab Project 2022 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Description of the tests" href="steps.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="steps.html" title="Description of the tests"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CL Lab Project 2022 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Installing ANTLR4 in your Linux</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="installing-antlr4-in-your-linux">
+<h1><span class="target" id="index-0"></span>Installing ANTLR4 in your Linux<a class="headerlink" href="#installing-antlr4-in-your-linux" title="Permalink to this headline">¶</a></h1>
+<section id="java">
+<h2>Java<a class="headerlink" href="#java" title="Permalink to this headline">¶</a></h2>
+<p>Make sure you have Java installed. Check it with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">java</span> <span class="o">-</span><span class="n">version</span>
+</pre></div>
+</div>
+<p>If you don’t have it, install it normally with your distro package manager.</p>
+</section>
+<section id="antlr4">
+<h2>ANTLR4<a class="headerlink" href="#antlr4" title="Permalink to this headline">¶</a></h2>
+<section id="option-1-using-the-package-manager">
+<h3>Option 1: Using the package manager<a class="headerlink" href="#option-1-using-the-package-manager" title="Permalink to this headline">¶</a></h3>
+<p>Modern Linux distros already include a package for ANTLR</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">antlr4</span>
+</pre></div>
+</div>
+</section>
+<section id="option-2-getting-the-jar-file">
+<h3>Option 2: Getting the jar file<a class="headerlink" href="#option-2-getting-the-jar-file" title="Permalink to this headline">¶</a></h3>
+<p>Alternatively, you can go to <a class="reference external" href="https://www.antlr.org">https://www.antlr.org</a> and follow the instructions there, which mainly consist of:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Download antlr4 jar file to /usr/local/lib</span>
+<span class="n">cd</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span>
+<span class="n">sudo</span> <span class="n">wget</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">antlr</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">download</span><span class="o">/</span><span class="n">antlr</span><span class="o">-</span><span class="mf">4.9.2</span><span class="o">-</span><span class="n">complete</span><span class="o">.</span><span class="n">jar</span>
+</pre></div>
+</div>
+<p><strong>IMPORTANT:</strong> Do NOT get latest version 4.9.3, the API is changed and it will not work with our code.</p>
+<p>You will also need to create a command file that will ease the call to Antlr4.
+Edit a file named <code class="docutils literal notranslate"><span class="pre">antlr4</span></code> and write into it:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ch">#! /bin/bash</span>
+<span class="n">export</span> <span class="n">CLASSPATH</span><span class="o">=</span><span class="s2">&quot;.:/usr/local/lib/antlr-4.9.2-complete.jar:$CLASSPATH&quot;</span>
+<span class="n">java</span> <span class="o">-</span><span class="n">jar</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">antlr</span><span class="o">-</span><span class="mf">4.9.2</span><span class="o">-</span><span class="n">complete</span><span class="o">.</span><span class="n">jar</span> <span class="s2">&quot;$@&quot;</span>
+</pre></div>
+</div>
+<p>save the file, and give it execution permission:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">chmod</span> <span class="o">+</span><span class="n">x</span> <span class="n">antlr4</span>
+</pre></div>
+</div>
+<p>finally, move it to a folder in the default PATH</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">mv</span> <span class="n">antlr4</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="nb">bin</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="c-runtime">
+<h2>C++ Runtime<a class="headerlink" href="#c-runtime" title="Permalink to this headline">¶</a></h2>
+<p>Although Antlr4 is a Java-universe project, it can be instructed to generate C++ code. The resulting code uses some C++ classes included in a shared library (the <em>runtime</em>) that is not installed by default with Antlr4.
+To install it we can follow the steps below:</p>
+<section id="id1">
+<h3>Option 1: Using the package manager<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>Some linux distributions have this library packaged. Installing the <cite>dev</cite> package should pull the binaries too:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">libantlr4</span><span class="o">-</span><span class="n">runtime</span><span class="o">-</span><span class="n">dev</span>
+</pre></div>
+</div>
+</section>
+<section id="option-2-compiling-from-source">
+<h3>Option 2: Compiling from source<a class="headerlink" href="#option-2-compiling-from-source" title="Permalink to this headline">¶</a></h3>
+<p>If your distribution does not provide this package, you’ll need to install it from source:</p>
+<p>First, install required tools and dependencies:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">cmake</span> <span class="n">uuid</span><span class="o">-</span><span class="n">dev</span> <span class="n">pkgconf</span>
+</pre></div>
+</div>
+<p>Then, download the source from <a class="reference external" href="https://www.antlr.org/download.html">https://www.antlr.org/download.html</a> and compile it.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># download source</span>
+<span class="n">mkdir</span> <span class="n">antlr</span><span class="o">-</span><span class="n">src</span> <span class="o">&amp;&amp;</span> <span class="n">cd</span> <span class="n">antlr</span><span class="o">-</span><span class="n">src</span>
+<span class="n">wget</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">antlr</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">download</span><span class="o">/</span><span class="n">antlr4</span><span class="o">-</span><span class="n">cpp</span><span class="o">-</span><span class="n">runtime</span><span class="o">-</span><span class="mf">4.9.2</span><span class="o">-</span><span class="n">source</span><span class="o">.</span><span class="n">zip</span>
+<span class="c1"># unzip file</span>
+<span class="n">unzip</span> <span class="n">antlr4</span><span class="o">-</span><span class="n">cpp</span><span class="o">-</span><span class="n">runtime</span><span class="o">-</span><span class="mf">4.9.2</span><span class="o">-</span><span class="n">source</span><span class="o">.</span><span class="n">zip</span>
+<span class="c1"># create build directory for cmake</span>
+<span class="n">mkdir</span> <span class="n">build</span> <span class="o">&amp;&amp;</span> <span class="n">cd</span> <span class="n">build</span>
+<span class="c1"># create makefiles</span>
+<span class="n">cmake</span> <span class="o">..</span> <span class="o">-</span><span class="n">DANTLR_JAR_LOCATION</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">antlr</span><span class="o">-</span><span class="mf">4.9.2</span><span class="o">-</span><span class="n">complete</span><span class="o">.</span><span class="n">jar</span> <span class="o">-</span><span class="n">DCMAKE_INSTALL_PREFIX</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span> <span class="o">-</span><span class="n">DWITH_DEMO</span><span class="o">=</span><span class="kc">True</span>
+<span class="c1"># build and install</span>
+<span class="n">make</span>
+<span class="n">sudo</span> <span class="n">make</span> <span class="n">install</span>
+</pre></div>
+</div>
+<p>If you installed Antlr4 from a distribution package, your <code class="docutils literal notranslate"><span class="pre">ANTLR_JAR_LOCATION</span></code> will be something like <code class="docutils literal notranslate"><span class="pre">/usr/share/java/antlr4-4.9.2.jar</span></code>. Examine the contents of the package and set the right path in the <code class="docutils literal notranslate"><span class="pre">cmake</span></code> command.</p>
+<p><strong>IMPORTANT:</strong> Do NOT get latest version 4.9.3, the API is changed and it will not work with our code.</p>
+</section>
+</section>
+<section id="adapting-makefiles">
+<h2>Adapting Makefiles<a class="headerlink" href="#adapting-makefiles" title="Permalink to this headline">¶</a></h2>
+<p>Makefiles provided with the class exercises and lab project expect Antlr4 runtime to be in <code class="docutils literal notranslate"><span class="pre">$HOME/assig/cl/runtime</span></code></p>
+<p>In order to run them in your computer, you need to edit the Makefile and replace line 80</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>ANTLR_ROOT := $(HOME)/assig/cl/runtime
+</pre></div>
+</div>
+<p>with</p>
+<ul>
+<li><p>If you installed from distribution packages:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ANTLR_ROOT</span> <span class="o">:=</span> <span class="o">/</span><span class="n">usr</span>
+</pre></div>
+</div>
+</li>
+<li><p>If you installed the jarfile directly, set it to the folder where you created the <code class="docutils literal notranslate"><span class="pre">antlr4</span></code> command file</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ANTLR_ROOT</span> <span class="o">:=</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>Once the Makefile is fixed, you should be able to compile the class examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">intro</span><span class="o">/</span><span class="mi">1</span><span class="n">_simple_expression</span><span class="o">/</span><span class="mi">1</span><span class="n">a_only_parser</span>
+<span class="n">make</span> <span class="n">antlr</span>
+<span class="n">make</span>
+<span class="o">./</span><span class="n">main</span> <span class="n">expr1</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+</section>
+<section id="setting-up-library-paths">
+<h2>Setting up Library Paths<a class="headerlink" href="#setting-up-library-paths" title="Permalink to this headline">¶</a></h2>
+<p>If you get errors when running your <code class="docutils literal notranslate"><span class="pre">./main</span></code> program, it may be that the loader is not finding the runtime.</p>
+<p>If you installed the runtime in <code class="docutils literal notranslate"><span class="pre">/usr/local/lib</span></code> you may need to update loader paths:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">ldconfig</span>
+</pre></div>
+</div>
+<p>If you installed the runtime in some other folder, you need to set the right environment variables so that the loader finds it:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">LD_LIBRARY_PATH</span><span class="o">=/</span><span class="n">my</span><span class="o">/</span><span class="n">runtime</span><span class="o">/</span><span class="n">folder</span>
+</pre></div>
+</div>
+<p>You can add this line to your <code class="docutils literal notranslate"><span class="pre">.bashrc</span></code> to avoid having to do it for every session.</p>
+<p>MacOS users: in MacOS the variable name is <code class="docutils literal notranslate"><span class="pre">DYLD_LIBRARY_PATH</span></code></p>
+</section>
+<section id="using-grun-to-visualize-trees">
+<h2>Using <code class="docutils literal notranslate"><span class="pre">grun</span></code> to visualize trees<a class="headerlink" href="#using-grun-to-visualize-trees" title="Permalink to this headline">¶</a></h2>
+<p>You can use <code class="docutils literal notranslate"><span class="pre">grun</span></code> to visualize and debug the trees your grammar is creating.</p>
+<p>Details on how to do so are given in the <a class="reference internal" href="intro.html"><span class="doc">Introduction to ANTLR4</span></a> page.</p>
+<p>However, to run it in your computer you’ll need to set up the paths for the java components of ANTLR4.
+Edit your <code class="docutils literal notranslate"><span class="pre">$HOME/.bashrc</span></code> file and add the commands:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>export ANTLR4=/usr/share/java
+if ( $?CLASSPATH ) then
+    export CLASSPATH=.:$ANTLR4/antlr-4.9.2-complete.jar:$CLASSPATH
+else
+    export CLASSPATH=.:$ANTLR4/antlr-4.9.2-complete.jar
+fi
+</pre></div>
+</div>
+<p>If you installed antlr4 by getting the jarfile instead of using the package manager, you may need to change the path <code class="docutils literal notranslate"><span class="pre">/usr/share/java</span></code> to another location (e.g. <code class="docutils literal notranslate"><span class="pre">/usr/local/share/java</span></code> or wherever you installed it)</p>
+<p>Once <code class="docutils literal notranslate"><span class="pre">.bashrc</span></code> has been updated, open a new terminal to get the new configuration loaded.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Installing ANTLR4 in your Linux</a><ul>
+<li><a class="reference internal" href="#java">Java</a></li>
+<li><a class="reference internal" href="#antlr4">ANTLR4</a><ul>
+<li><a class="reference internal" href="#option-1-using-the-package-manager">Option 1: Using the package manager</a></li>
+<li><a class="reference internal" href="#option-2-getting-the-jar-file">Option 2: Getting the jar file</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c-runtime">C++ Runtime</a><ul>
+<li><a class="reference internal" href="#id1">Option 1: Using the package manager</a></li>
+<li><a class="reference internal" href="#option-2-compiling-from-source">Option 2: Compiling from source</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#adapting-makefiles">Adapting Makefiles</a></li>
+<li><a class="reference internal" href="#setting-up-library-paths">Setting up Library Paths</a></li>
+<li><a class="reference internal" href="#using-grun-to-visualize-trees">Using <code class="docutils literal notranslate"><span class="pre">grun</span></code> to visualize trees</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="steps.html"
+                          title="previous chapter">Description of the tests</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/install.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="steps.html" title="Description of the tests"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CL Lab Project 2022 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Installing ANTLR4 in your Linux</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018-2022, Compilers. FIB, UPC..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.4.0.
+    </div>
+  </body>
+</html>

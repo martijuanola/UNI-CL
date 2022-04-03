@@ -1,0 +1,823 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>t-Code Virtual Machine - Instruction set and operation manual &#8212; CL Lab Project 2022 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Description of the tests" href="steps.html" />
+    <link rel="prev" title="Semantic Errors" href="modules/semerrors.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="steps.html" title="Description of the tests"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="modules/semerrors.html" title="Semantic Errors"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CL Lab Project 2022 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="project.html" accesskey="U">Lab Project of Compilers - FIB UPC, 2022</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><em>t</em>-Code Virtual Machine - Instruction set and operation manual</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <p><span class="target" id="index-0"></span>tVM
+<span class="target" id="index-1"></span>t-Code Virtual Machine</p>
+<section id="t-code-virtual-machine-instruction-set-and-operation-manual">
+<h1><em>t</em>-Code Virtual Machine - Instruction set and operation manual<a class="headerlink" href="#t-code-virtual-machine-instruction-set-and-operation-manual" title="Permalink to this headline">¶</a></h1>
+<p>This page describes <em>t</em>VM, a virtual machine that runs <em>t</em>-code, which is a low level 3-address code.</p>
+<p>Is is called <em>t</em>-code because the virtual machine has a very simple
+set of instructions and thus it is necessary to use a lot of <em>t</em>emporal
+registers to store intermediate results.</p>
+<p>This document describes the instructions that the VM can process, as
+well as how to execute a program on it.</p>
+<section id="executing-a-program-in-tvm">
+<h2>Executing a program in <em>t</em>VM<a class="headerlink" href="#executing-a-program-in-tvm" title="Permalink to this headline">¶</a></h2>
+<p>To execute a program, just run the VM with the name of the program file
+as an argument</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">tvm</span> <span class="n">myprogram</span><span class="o">.</span><span class="n">t</span>
+</pre></div>
+</div>
+<p>You can add the flag <code class="docutils literal notranslate"><span class="pre">--debug</span></code> to get details about the machine status
+while it executes your program.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">tvm</span> <span class="n">myprogram</span><span class="o">.</span><span class="n">t</span> <span class="o">--</span><span class="n">debug</span>
+</pre></div>
+</div>
+</section>
+<section id="tvm-program-structure">
+<h2><em>t</em>VM program structure<a class="headerlink" href="#tvm-program-structure" title="Permalink to this headline">¶</a></h2>
+<p>A program for <em>t</em>VM is just a list of functions. Exactly one of the functions must
+be named <code class="docutils literal notranslate"><span class="pre">main</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">main</span>  <span class="p">;;;</span> <span class="n">this</span> <span class="ow">is</span> <span class="n">the</span> <span class="n">main</span> <span class="n">program</span>
+    <span class="o">...</span>
+<span class="n">endfunction</span>
+
+<span class="n">function</span> <span class="n">f1</span>    <span class="p">;;;</span> <span class="n">another</span> <span class="n">function</span>
+    <span class="o">...</span>
+<span class="n">endfunction</span>
+
+<span class="o">...</span> <span class="n">etc</span>
+</pre></div>
+</div>
+<p>The string <code class="docutils literal notranslate"><span class="pre">;;;</span></code> starts a comment that will last until the end of the
+line. Comments can appear anywhere.</p>
+</section>
+<section id="function-structure">
+<h2>Function structure<a class="headerlink" href="#function-structure" title="Permalink to this headline">¶</a></h2>
+<p>Each function has three sections:</p>
+<ul class="simple">
+<li><p>Section <code class="docutils literal notranslate"><span class="pre">params</span></code> is optional, and declares the parameters the
+function expects to find in the stack.</p></li>
+<li><p>Parameters are declared in the order they must be pushed.</p></li>
+<li><p>Parameters must be pushed by the caller.</p></li>
+<li><p>Function <code class="docutils literal notranslate"><span class="pre">main</span></code> can not have <code class="docutils literal notranslate"><span class="pre">params</span></code> section.</p></li>
+<li><p>All parameters use exactly one memory position.</p></li>
+<li><p>Section <code class="docutils literal notranslate"><span class="pre">vars</span></code> is optional, and lists the function local variables,
+with their sizes.</p></li>
+<li><p>Finally, there is the function body which is a list of instructions.
+The execution of the function ends when a <code class="docutils literal notranslate"><span class="pre">return</span></code> instruction is
+found.</p></li>
+</ul>
+<p>Example function:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">f1</span>
+   <span class="n">params</span>
+      <span class="n">p1</span>
+      <span class="n">p2</span>
+   <span class="n">endparams</span>
+   <span class="nb">vars</span>
+      <span class="n">v1</span> <span class="mi">1</span>
+      <span class="n">a</span> <span class="mi">10</span>
+   <span class="n">endvars</span>
+
+   <span class="o">...</span> <span class="n">instructions</span> <span class="n">go</span> <span class="n">here</span> <span class="o">...</span>
+   <span class="k">return</span>
+<span class="n">endfunction</span>
+</pre></div>
+</div>
+</section>
+<section id="memory-usage-variables-and-temporal-registers">
+<h2>Memory usage, variables and temporal registers<a class="headerlink" href="#memory-usage-variables-and-temporal-registers" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><em>t</em>VM functions handle only parameters and local variables. All of them
+are stored in the stack.</p></li>
+<li><p>Function result value is handled as an additional parameter, that has
+to be pushed and popped by the caller.</p></li>
+<li><p>Function parameters use one memory position (32 bits).</p></li>
+<li><p>Variables can use any number of memory positions.</p></li>
+<li><p>Variables of sizes larger than 1 can be used as array base addresses
+and accessed with indexing instructions.</p></li>
+<li><p>Apart from stack memory, <em>t</em>VM has temporal registers, identified as
+<code class="docutils literal notranslate"><span class="pre">%1</span></code>, <code class="docutils literal notranslate"><span class="pre">%2</span></code>, <code class="docutils literal notranslate"><span class="pre">%3</span></code>, …</p>
+<ul>
+<li><p>There is no limit to the number of used temporal registers.</p></li>
+<li><p>Temporal registers are local to each function activation, and
+saved automatically by the VM between calls.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="instruction-set">
+<h2>Instruction set<a class="headerlink" href="#instruction-set" title="Permalink to this headline">¶</a></h2>
+<section id="flow-control-instructions">
+<h3>Flow control instructions<a class="headerlink" href="#flow-control-instructions" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 39%" />
+<col style="width: 61%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><em>Instruction</em></p></th>
+<th class="head"><p><em>Effect</em></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">label</span> <span class="pre">label-name</span> <span class="pre">:</span></code></p></td>
+<td><p>Define a label in this position, to be jumped to.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">goto</span> <span class="pre">label-name</span></code></p></td>
+<td><p>Continue execution at given label.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ifFalse</span> <span class="pre">addr</span> <span class="pre">goto</span> <span class="pre">label-name</span></code></p></td>
+<td><p>If the content of variable/temporal <code class="docutils literal notranslate"><span class="pre">addr</span></code>
+is zero continue execution at given label.</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>All labels are local to functions. No jumps between functions are
+allowed.</p>
+</section>
+<section id="assignment-instructions">
+<h3>Assignment instructions<a class="headerlink" href="#assignment-instructions" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 74%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><em>Instruction</em></p></th>
+<th class="head"><p><em>Effect</em></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">addr</span> <span class="pre">=</span> <span class="pre">99</span></code></p></td>
+<td><p>Load integer value into variable/temporal <code class="docutils literal notranslate"><span class="pre">addr</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">addr</span> <span class="pre">=</span> <span class="pre">9.99</span></code></p></td>
+<td><p>Load float value into variable/temporal <code class="docutils literal notranslate"><span class="pre">addr</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">addr</span> <span class="pre">=</span> <span class="pre">'A'</span></code></p></td>
+<td><p>Load char value into variable/temporal <code class="docutils literal notranslate"><span class="pre">addr</span></code>.
+Escaped chars <code class="docutils literal notranslate"><span class="pre">'\t'</span></code> and <code class="docutils literal notranslate"><span class="pre">'\n'</span></code> are allowed.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">addr1</span> <span class="pre">=</span> <span class="pre">addr2</span></code></p></td>
+<td><p>Copy value from variable/temporal <code class="docutils literal notranslate"><span class="pre">addr2</span></code> to
+variable/temporal <code class="docutils literal notranslate"><span class="pre">addr1</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</section>
+<section id="aritmetic-relational-logical-binary-instructions">
+<h3>Aritmetic/relational/logical binary instructions<a class="headerlink" href="#aritmetic-relational-logical-binary-instructions" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 43%" />
+<col style="width: 58%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><em>Instruction</em></p></th>
+<th class="head"><p><em>Effect</em></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">addr1</span> <span class="pre">=</span> <span class="pre">addr2</span> <span class="pre">operation</span> <span class="pre">addr3</span></code></p></td>
+<td><p>Perform <code class="docutils literal notranslate"><span class="pre">operation</span></code> with variable/temporal
+<code class="docutils literal notranslate"><span class="pre">addr2</span></code> and <code class="docutils literal notranslate"><span class="pre">addr3</span></code> and store result in
+variable/temporal <code class="docutils literal notranslate"><span class="pre">addr1</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 32%" />
+<col style="width: 68%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><em>Valid operations are:</em></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">+</span></code> <code class="docutils literal notranslate"><span class="pre">-</span></code> <code class="docutils literal notranslate"><span class="pre">*</span></code> <code class="docutils literal notranslate"><span class="pre">/</span></code></p></td>
+<td><p>Aritmetic operations with integer operands and integer result.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">+.</span></code> <code class="docutils literal notranslate"><span class="pre">-.</span></code> <code class="docutils literal notranslate"><span class="pre">*.</span></code> <code class="docutils literal notranslate"><span class="pre">/.</span></code></p></td>
+<td><p>Aritmetic operations with float operands and float result.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">==</span></code> <code class="docutils literal notranslate"><span class="pre">&lt;=</span></code> <code class="docutils literal notranslate"><span class="pre">&lt;</span></code></p></td>
+<td><p>Comparison operators with integer operands and integer (0/1) result.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">==.</span></code> <code class="docutils literal notranslate"><span class="pre">&lt;=.</span></code> <code class="docutils literal notranslate"><span class="pre">&lt;.</span></code></p></td>
+<td><p>Comparison operators with float operands and integer (0/1) result.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">and</span></code> <code class="docutils literal notranslate"><span class="pre">or</span></code></p></td>
+<td><p>Logical operators with integer (0/1) operands and integer (0/1) result.</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</section>
+<section id="aritmetic-logical-unary-instructions">
+<h3>Aritmetic/logical unary instructions<a class="headerlink" href="#aritmetic-logical-unary-instructions" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 65%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><em>Instruction</em></p></th>
+<th class="head"><p><em>Effect</em></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">addr1</span> <span class="pre">=</span> <span class="pre">operation</span> <span class="pre">addr2</span></code></p></td>
+<td><p>Perform <code class="docutils literal notranslate"><span class="pre">operation</span></code> on variable/temporal <cite>addr2`</cite>
+and store result in variable/temporal <code class="docutils literal notranslate"><span class="pre">addr1</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 74%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><em>Valid operations are:</em></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p>Sign change with integer operands and integer result.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-.</span></code></p></td>
+<td><p>Sign change with float operands and float result.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">not</span></code></p></td>
+<td><p>Logical negation with integer (0/1) operands and integer (0/1) result.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">float</span></code></p></td>
+<td><p>Integer to float conversion with integer operand and float result.</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</section>
+<section id="assignment-instructions-with-indirections-or-indexing">
+<h3>Assignment instructions with indirections or indexing<a class="headerlink" href="#assignment-instructions-with-indirections-or-indexing" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 31%" />
+<col style="width: 69%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><em>Instruction</em></p></th>
+<th class="head"><p><em>Effect</em></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">addr1[addr2]</span> <span class="pre">=</span> <span class="pre">addr3</span></code></p></td>
+<td><p>Copy content of variable/temporal <code class="docutils literal notranslate"><span class="pre">addr3</span></code> to <code class="docutils literal notranslate"><span class="pre">addr2</span></code>
+positions after <code class="docutils literal notranslate"><span class="pre">addr1</span></code> memory address.
+If <code class="docutils literal notranslate"><span class="pre">addr1</span></code> is a variable or parameter, its address is
+used. If it is a temporal, it is assumed to contain a
+pointer to the base address to be used.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">addr1</span> <span class="pre">=</span> <span class="pre">addr2[addr3]</span></code></p></td>
+<td><p>Copy to variable/temporal <code class="docutils literal notranslate"><span class="pre">addr1</span></code> the content of
+<code class="docutils literal notranslate"><span class="pre">addr3</span></code> positions after <code class="docutils literal notranslate"><span class="pre">addr2</span></code> memory address.
+If <code class="docutils literal notranslate"><span class="pre">addr2</span></code> is a variable or parameter, its address is
+used. If it is a temporal, it is assumed to contain a
+pointer to the base address to be used.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">temp</span> <span class="pre">=</span> <span class="pre">&amp;var</span></code></p></td>
+<td><p>Copy to temporal <code class="docutils literal notranslate"><span class="pre">temp</span></code> the memory address of <code class="docutils literal notranslate"><span class="pre">var</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">addr1</span> <span class="pre">=</span> <span class="pre">*temp</span></code></p></td>
+<td><p>Copy to variable/temporal <code class="docutils literal notranslate"><span class="pre">addr1</span></code> the content of
+memory address contained in temporal <code class="docutils literal notranslate"><span class="pre">temp</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">*temp</span> <span class="pre">=</span> <span class="pre">addr1</span></code></p></td>
+<td><p>Copy the content of variable/temporal <code class="docutils literal notranslate"><span class="pre">addr1</span></code>
+to the memory address contained in temporal <code class="docutils literal notranslate"><span class="pre">temp</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</section>
+<section id="stack-instructions">
+<h3>Stack instructions<a class="headerlink" href="#stack-instructions" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 79%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><em>Instruction</em></p></th>
+<th class="head"><p><em>Effect</em></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pushparam</span> <span class="pre">addr1</span></code></p></td>
+<td><p>Push content of variable/temporal <code class="docutils literal notranslate"><span class="pre">addr1</span></code> into the stack.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">pushparam</span></code></p></td>
+<td><p>Push a zero into the stack (typically to reserve space, e.g. for a function result).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">popparam</span> <span class="pre">addr1</span></code></p></td>
+<td><p>Get content of stack top into <code class="docutils literal notranslate"><span class="pre">addr1</span></code> and pop it from the stack.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">popparam</span></code></p></td>
+<td><p>Pop top of the stack, ignoring its value.</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</section>
+<section id="function-calling-instructions">
+<h3>Function calling instructions<a class="headerlink" href="#function-calling-instructions" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 78%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><em>Instruction</em></p></th>
+<th class="head"><p><em>Effect</em></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">call</span> <span class="pre">fname</span></code></p></td>
+<td><p>Execute function <code class="docutils literal notranslate"><span class="pre">fname</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">return</span></code></p></td>
+<td><p>End function execution and return control to caller.</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</section>
+<section id="input-output-instructions">
+<h3>Input/output instructions<a class="headerlink" href="#input-output-instructions" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 34%" />
+<col style="width: 66%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><em>Instruction</em></p></th>
+<th class="head"><p><em>Effect</em></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">readi</span> <span class="pre">addr1</span></code></p></td>
+<td><p>Read an integer value and store it in <code class="docutils literal notranslate"><span class="pre">addr1</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">readf</span> <span class="pre">addr1</span></code></p></td>
+<td><p>Read an float value and store it in <code class="docutils literal notranslate"><span class="pre">addr1</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">readc</span> <span class="pre">addr1</span></code></p></td>
+<td><p>Read an character value and store it in <code class="docutils literal notranslate"><span class="pre">addr1</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">writei</span> <span class="pre">addr1</span></code></p></td>
+<td><p>Write content of <code class="docutils literal notranslate"><span class="pre">addr1</span></code> as integer.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">writef</span> <span class="pre">addr1</span></code></p></td>
+<td><p>Write content of <code class="docutils literal notranslate"><span class="pre">addr1</span></code> as float.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">writec</span> <span class="pre">addr1</span></code></p></td>
+<td><p>Write content of <code class="docutils literal notranslate"><span class="pre">addr1</span></code> as character.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">writes</span> <span class="pre">&quot;somestring&quot;</span></code></p></td>
+<td><p>Write a string literal.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">writeln</span></code></p></td>
+<td><p>Write a newline.</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</section>
+</section>
+</section>
+<section id="example-programs">
+<h1>Example programs<a class="headerlink" href="#example-programs" title="Permalink to this headline">¶</a></h1>
+<section id="factorial">
+<h2>Factorial<a class="headerlink" href="#factorial" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">;;;</span> <span class="n">This</span> <span class="n">program</span> <span class="n">reads</span> <span class="n">an</span> <span class="n">integer</span> <span class="ow">and</span> <span class="n">computes</span>
+<span class="p">;;;</span> <span class="n">its</span> <span class="n">factorial</span> <span class="n">using</span> <span class="n">a</span> <span class="n">recursive</span> <span class="n">function</span>
+
+<span class="n">function</span> <span class="n">main</span>
+  <span class="nb">vars</span>
+   <span class="n">x</span> <span class="mi">1</span>            <span class="p">;;;</span> <span class="nb">int</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
+   <span class="n">y</span> <span class="mi">1</span>
+  <span class="n">endvars</span>
+
+  <span class="n">readi</span> <span class="n">x</span>         <span class="p">;;;</span> <span class="n">read</span> <span class="n">x</span>
+  <span class="n">pushparam</span>       <span class="p">;;;</span> <span class="n">make</span> <span class="n">space</span> <span class="k">for</span> <span class="n">function</span> <span class="n">result</span>
+  <span class="n">pushparam</span> <span class="n">x</span>     <span class="p">;;;</span> <span class="k">pass</span> <span class="n">parameter</span> <span class="n">x</span>
+  <span class="n">call</span> <span class="n">fact</span>       <span class="p">;;;</span> <span class="n">y</span> <span class="o">=</span> <span class="n">fact</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+  <span class="n">popparam</span>        <span class="p">;;;</span> <span class="n">remove</span> <span class="n">passed</span> <span class="n">parameter</span> <span class="n">x</span>
+  <span class="n">popparam</span> <span class="n">y</span>      <span class="p">;;;</span> <span class="n">pop</span> <span class="n">result</span> <span class="ow">and</span> <span class="n">store</span> <span class="ow">in</span> <span class="n">y</span>
+  <span class="n">writei</span> <span class="n">y</span>        <span class="p">;;;</span> <span class="nb">print</span> <span class="n">y</span>
+  <span class="n">writeln</span>
+  <span class="k">return</span>
+<span class="n">endfunction</span>
+
+<span class="n">function</span> <span class="n">fact</span>
+  <span class="n">params</span>
+    <span class="n">_result</span>      <span class="p">;;;</span> <span class="n">_result</span> <span class="ow">is</span> <span class="n">an</span> <span class="n">internal</span> <span class="n">variable</span> <span class="n">used</span> <span class="n">to</span>
+                 <span class="p">;;;</span> <span class="n">access</span> <span class="n">the</span> <span class="n">result</span> <span class="n">position</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">stack</span>
+    <span class="n">n</span>            <span class="p">;;;</span> <span class="n">received</span> <span class="n">parameter</span>
+  <span class="n">endparams</span>
+
+  <span class="nb">vars</span>
+    <span class="n">f</span> <span class="mi">1</span>          <span class="p">;;;</span> <span class="n">local</span> <span class="n">variable</span>
+  <span class="n">endvars</span>
+
+  <span class="o">%</span><span class="mi">1</span> <span class="o">=</span> <span class="mi">0</span>
+  <span class="o">%</span><span class="mi">1</span> <span class="o">=</span> <span class="n">n</span> <span class="o">==</span> <span class="o">%</span><span class="mi">1</span>             <span class="p">;;;</span> <span class="n">compute</span> <span class="o">%</span><span class="mi">1</span> <span class="o">=</span> <span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span>
+  <span class="n">ifFalse</span> <span class="o">%</span><span class="mi">1</span> <span class="n">goto</span> <span class="n">else1</span>
+  <span class="n">f</span> <span class="o">=</span> <span class="mi">1</span>                    <span class="p">;;;</span> <span class="n">n</span><span class="o">==</span><span class="mi">0</span><span class="p">,</span> <span class="n">so</span> <span class="n">f</span><span class="o">=</span><span class="mi">1</span>
+  <span class="n">goto</span> <span class="n">endif1</span>
+
+  <span class="n">label</span> <span class="n">else1</span> <span class="p">:</span>             <span class="p">;;;</span> <span class="n">n</span><span class="o">!=</span><span class="mi">0</span><span class="p">,</span> <span class="n">prepare</span> <span class="n">recursive</span> <span class="n">call</span>
+  <span class="n">pushparam</span>                <span class="p">;;;</span> <span class="n">space</span> <span class="k">for</span> <span class="n">function</span> <span class="n">result</span>
+  <span class="o">%</span><span class="mi">2</span> <span class="o">=</span> <span class="mi">1</span>                   <span class="p">;;;</span> <span class="o">%</span><span class="mi">2</span> <span class="o">=</span> <span class="n">n</span><span class="o">-</span><span class="mi">1</span>
+  <span class="o">%</span><span class="mi">2</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="o">%</span><span class="mi">2</span>
+  <span class="n">pushparam</span> <span class="o">%</span><span class="mi">2</span>             <span class="p">;;;</span> <span class="k">pass</span> <span class="n">n</span><span class="o">-</span><span class="mi">1</span> <span class="k">as</span> <span class="n">parameter</span>
+  <span class="n">call</span> <span class="n">fact</span>                <span class="p">;;;</span> <span class="n">f</span> <span class="o">=</span> <span class="n">fact</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+  <span class="n">popparam</span>                 <span class="p">;;;</span> <span class="n">remove</span> <span class="n">passed</span> <span class="n">parameter</span> <span class="n">n</span><span class="o">-</span><span class="mi">1</span>
+  <span class="n">popparam</span> <span class="n">f</span>               <span class="p">;;;</span> <span class="n">pop</span> <span class="n">result</span> <span class="ow">and</span> <span class="n">store</span> <span class="n">it</span> <span class="ow">in</span> <span class="n">f</span>
+  <span class="n">f</span> <span class="o">=</span> <span class="n">n</span> <span class="o">*</span> <span class="n">f</span>                <span class="p">;;;</span> <span class="n">f</span> <span class="o">=</span> <span class="n">n</span> <span class="o">*</span> <span class="n">f</span>
+  <span class="n">label</span> <span class="n">endif1</span> <span class="p">:</span>
+  <span class="n">_result</span> <span class="o">=</span> <span class="n">f</span>              <span class="p">;;;</span> <span class="n">store</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">space</span> <span class="n">reserved</span> <span class="k">for</span> <span class="n">result</span>
+  <span class="k">return</span>
+<span class="n">endfunction</span>
+</pre></div>
+</div>
+</section>
+<section id="example-computing-number-e">
+<h2>Example - Computing number <em>e</em><a class="headerlink" href="#example-computing-number-e" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>;;; This program computes number &quot;e&quot; with a precision &quot;eps&quot;
+;;; using the formula e = sum 1/(i!)  for all i&gt;0
+
+function main
+  vars
+   e 1            ;;; float e, eant, eps, f
+   eant 1
+   eps 1
+   f 1
+   i 1            ;;; int i
+  endvars
+
+  eant = 0.0
+  e = 1.0
+  eps = 0.00001
+  f = 1.0
+  i = 1
+
+  label while1 :      ;;; while (eps &lt; e-eant)
+  %1 = e -. eant
+  %1 = eps &lt;. %1
+  ifFalse %1 goto endwhile1
+  eant = e
+
+  %2 = 1.0           ;;; e = e + 1.0/f
+  %2 = %2 /. f       ;;; (e and f are float, note float
+  e = e +. %2        ;;; operations &quot;+.&quot; and &quot;/.&quot;)
+
+  %2 = 1             ;;; i = i + 1
+  i = i + %2         ;;; (i is int -&gt; integer addition &quot;+&quot;)
+
+  %3 = float i       ;;; f = f * i
+  f = f *. %3        ;;; (i is converted to float before
+                     ;;; performing a float product &quot;*.&quot;)
+
+  goto while1
+  label endwhile1 :   ;;; endwhile
+
+  writef e
+  writeln
+
+  return
+endfunction
+</pre></div>
+</div>
+</section>
+<section id="example-reversing-a-vector">
+<h2>Example - Reversing a vector<a class="headerlink" href="#example-reversing-a-vector" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">;;;</span>  <span class="n">This</span> <span class="n">program</span> <span class="n">reads</span> <span class="n">a</span> <span class="n">number</span> <span class="n">x</span><span class="p">,</span> <span class="n">fills</span> <span class="n">an</span> <span class="n">array</span> <span class="n">of</span> <span class="mi">10</span>
+<span class="p">;;;</span>  <span class="n">elements</span> <span class="k">with</span> <span class="n">values</span> <span class="n">x</span> <span class="n">to</span> <span class="n">x</span><span class="o">+</span><span class="mi">9</span><span class="p">,</span> <span class="n">reverses</span> <span class="n">the</span> <span class="n">array</span><span class="p">,</span>
+<span class="p">;;;</span>  <span class="ow">and</span> <span class="k">finally</span> <span class="n">prints</span> <span class="n">the</span> <span class="n">array</span> <span class="n">elements</span>
+
+<span class="n">function</span> <span class="n">main</span>
+  <span class="nb">vars</span>
+   <span class="n">x</span> <span class="mi">1</span>            <span class="p">;;;</span> <span class="nb">int</span> <span class="n">x</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span>
+   <span class="n">i</span> <span class="mi">1</span>
+   <span class="n">n</span> <span class="mi">1</span>
+   <span class="n">a</span> <span class="mi">10</span>           <span class="p">;;;</span> <span class="nb">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span>
+  <span class="n">endvars</span>
+
+  <span class="n">readi</span> <span class="n">x</span>
+  <span class="n">n</span> <span class="o">=</span> <span class="mi">10</span>                  <span class="p">;;;</span> <span class="n">n</span><span class="o">=</span><span class="mi">10</span>
+
+  <span class="p">;;;</span> <span class="n">fill</span> <span class="n">array</span> <span class="k">with</span> <span class="n">numbers</span> <span class="kn">from</span> <span class="nn">x</span> <span class="n">to</span> <span class="n">x</span><span class="o">+</span><span class="mi">9</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>                   <span class="p">;;;</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span>
+  <span class="n">label</span> <span class="n">for1</span> <span class="p">:</span>             <span class="p">;;;</span> <span class="k">while</span> <span class="p">(</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="p">)</span>
+  <span class="o">%</span><span class="mi">1</span> <span class="o">=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span>
+  <span class="n">ifFalse</span> <span class="o">%</span><span class="mi">1</span> <span class="n">goto</span> <span class="n">endfor1</span>
+
+  <span class="o">%</span><span class="mi">2</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">i</span>              <span class="p">;;;</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="o">+</span><span class="n">i</span>
+  <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">%</span><span class="mi">2</span>
+
+  <span class="o">%</span><span class="mi">2</span> <span class="o">=</span> <span class="mi">1</span>                  <span class="p">;;;</span> <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="o">%</span><span class="mi">2</span>
+  <span class="n">goto</span> <span class="n">for1</span>               <span class="p">;;;</span> <span class="n">endwhile</span>
+  <span class="n">label</span> <span class="n">endfor1</span> <span class="p">:</span>
+
+  <span class="p">;;;</span> <span class="n">reverse</span> <span class="n">array</span><span class="p">,</span> <span class="n">swapping</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">with</span> <span class="n">x</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="nb">all</span> <span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="o">/</span><span class="mi">2</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>                   <span class="p">;;;</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span>
+  <span class="n">label</span> <span class="n">for2</span> <span class="p">:</span>             <span class="p">;;;</span> <span class="k">while</span> <span class="p">(</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+  <span class="o">%</span><span class="mi">1</span> <span class="o">=</span> <span class="mi">2</span>
+  <span class="o">%</span><span class="mi">2</span> <span class="o">=</span> <span class="n">n</span> <span class="o">/</span> <span class="o">%</span><span class="mi">1</span>
+  <span class="o">%</span><span class="mi">3</span> <span class="o">=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="o">%</span><span class="mi">2</span>
+  <span class="n">ifFalse</span> <span class="o">%</span><span class="mi">3</span> <span class="n">goto</span> <span class="n">endfor2</span>
+  <span class="n">x</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>                <span class="p">;;;</span> <span class="n">x</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+  <span class="o">%</span><span class="mi">1</span> <span class="o">=</span> <span class="mi">1</span>                  <span class="p">;;;</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">i</span><span class="p">]</span>
+  <span class="o">%</span><span class="mi">1</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="o">%</span><span class="mi">1</span>
+  <span class="o">%</span><span class="mi">1</span> <span class="o">=</span> <span class="o">%</span><span class="mi">1</span> <span class="o">-</span> <span class="n">i</span>
+  <span class="o">%</span><span class="mi">2</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="o">%</span><span class="mi">1</span><span class="p">]</span>
+  <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">%</span><span class="mi">2</span>
+
+  <span class="n">a</span><span class="p">[</span><span class="o">%</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>               <span class="p">;;;</span> <span class="n">a</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
+
+  <span class="o">%</span><span class="mi">2</span> <span class="o">=</span> <span class="mi">1</span>                  <span class="p">;;;</span> <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="o">%</span><span class="mi">2</span>
+  <span class="n">goto</span> <span class="n">for2</span>               <span class="p">;;;</span> <span class="n">endwhile</span>
+  <span class="n">label</span> <span class="n">endfor2</span> <span class="p">:</span>
+
+  <span class="p">;;;</span> <span class="nb">print</span> <span class="n">array</span> <span class="n">elements</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>                   <span class="p">;;;</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span>
+  <span class="n">label</span> <span class="n">for3</span> <span class="p">:</span>             <span class="p">;;;</span> <span class="k">while</span> <span class="p">(</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="p">)</span>
+  <span class="o">%</span><span class="mi">1</span> <span class="o">=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span>
+  <span class="n">ifFalse</span> <span class="o">%</span><span class="mi">1</span> <span class="n">goto</span> <span class="n">endfor3</span>
+
+  <span class="o">%</span><span class="mi">2</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>               <span class="p">;;;</span> <span class="n">write</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+  <span class="n">writei</span> <span class="o">%</span><span class="mi">2</span>
+  <span class="o">%</span><span class="mi">2</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span>                <span class="p">;;;</span> <span class="n">write</span> <span class="s1">&#39; &#39;</span>
+  <span class="n">writec</span> <span class="o">%</span><span class="mi">2</span>
+
+  <span class="o">%</span><span class="mi">2</span> <span class="o">=</span> <span class="mi">1</span>                  <span class="p">;;;</span> <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="o">%</span><span class="mi">2</span>
+  <span class="n">goto</span> <span class="n">for3</span>               <span class="p">;;;</span> <span class="n">endwhile</span>
+  <span class="n">label</span> <span class="n">endfor3</span> <span class="p">:</span>
+
+  <span class="n">writeln</span>
+
+  <span class="k">return</span>
+<span class="n">endfunction</span>
+</pre></div>
+</div>
+</section>
+<section id="example-passing-arrays-per-reference">
+<h2>Example - Passing arrays per reference<a class="headerlink" href="#example-passing-arrays-per-reference" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">;;;</span>  <span class="n">This</span> <span class="n">program</span> <span class="n">reads</span> <span class="n">a</span> <span class="n">number</span> <span class="n">x</span><span class="p">,</span> <span class="n">fills</span> <span class="n">an</span> <span class="n">array</span> <span class="n">of</span> <span class="mi">10</span>
+<span class="p">;;;</span>  <span class="n">elements</span> <span class="k">with</span> <span class="n">values</span> <span class="n">x</span> <span class="n">to</span> <span class="n">x</span><span class="o">+</span><span class="mi">9</span><span class="p">,</span> <span class="n">passes</span> <span class="n">it</span> <span class="n">to</span> <span class="n">a</span>
+<span class="p">;;;</span>  <span class="n">function</span> <span class="n">that</span> <span class="n">reverses</span> <span class="n">the</span> <span class="n">array</span> <span class="ow">and</span> <span class="n">computes</span> <span class="n">the</span> <span class="nb">sum</span> <span class="n">of</span>
+<span class="p">;;;</span>  <span class="n">the</span> <span class="n">elements</span><span class="p">,</span>  <span class="ow">and</span> <span class="k">finally</span> <span class="n">prints</span> <span class="n">the</span> <span class="n">array</span> <span class="n">elements</span>
+
+<span class="n">function</span> <span class="n">reverse_and_sum</span>
+
+  <span class="n">params</span>
+    <span class="n">_result</span>
+    <span class="n">b</span>
+  <span class="n">endparams</span>
+
+  <span class="nb">vars</span>
+    <span class="n">i</span> <span class="mi">1</span>
+    <span class="n">n</span> <span class="mi">1</span>
+    <span class="n">x</span> <span class="mi">1</span>
+    <span class="n">s</span> <span class="mi">1</span>
+  <span class="n">endvars</span>
+
+  <span class="p">;;;</span> <span class="n">reverse</span> <span class="n">array</span><span class="p">,</span> <span class="n">swapping</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">with</span> <span class="n">x</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="nb">all</span> <span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="o">/</span><span class="mi">2</span>
+  <span class="p">;;;</span> <span class="ow">and</span> <span class="n">add</span> <span class="nb">all</span> <span class="n">elements</span> <span class="ow">in</span> <span class="n">s</span>
+  <span class="n">n</span> <span class="o">=</span> <span class="mi">10</span>                  <span class="p">;;;</span> <span class="n">n</span><span class="o">=</span><span class="mi">10</span>
+  <span class="n">s</span> <span class="o">=</span> <span class="mi">0</span>                   <span class="p">;;;</span> <span class="n">s</span><span class="o">=</span><span class="mi">0</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>                   <span class="p">;;;</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span>
+  <span class="n">label</span> <span class="n">for2</span> <span class="p">:</span>            <span class="p">;;;</span> <span class="k">while</span> <span class="p">(</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+  <span class="o">%</span><span class="mi">1</span> <span class="o">=</span> <span class="mi">2</span>
+  <span class="o">%</span><span class="mi">2</span> <span class="o">=</span> <span class="n">n</span> <span class="o">/</span> <span class="o">%</span><span class="mi">1</span>
+  <span class="o">%</span><span class="mi">3</span> <span class="o">=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="o">%</span><span class="mi">2</span>
+  <span class="n">ifFalse</span> <span class="o">%</span><span class="mi">3</span> <span class="n">goto</span> <span class="n">endfor2</span>
+  <span class="o">%</span><span class="mi">5</span> <span class="o">=</span> <span class="n">b</span>                  <span class="p">;;;</span> <span class="n">b</span> <span class="ow">is</span> <span class="n">a</span> <span class="n">pointer</span> <span class="n">to</span> <span class="n">a</span>
+  <span class="n">x</span> <span class="o">=</span> <span class="o">%</span><span class="mi">5</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>               <span class="p">;;;</span> <span class="n">x</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+  <span class="n">s</span> <span class="o">=</span> <span class="n">s</span> <span class="o">+</span> <span class="n">x</span>               <span class="p">;;;</span> <span class="n">s</span> <span class="o">=</span> <span class="n">s</span> <span class="o">+</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+  <span class="o">%</span><span class="mi">1</span> <span class="o">=</span> <span class="mi">1</span>                  <span class="p">;;;</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">i</span><span class="p">]</span>
+  <span class="o">%</span><span class="mi">1</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="o">%</span><span class="mi">1</span>
+  <span class="o">%</span><span class="mi">1</span> <span class="o">=</span> <span class="o">%</span><span class="mi">1</span> <span class="o">-</span> <span class="n">i</span>
+  <span class="o">%</span><span class="mi">2</span> <span class="o">=</span> <span class="o">%</span><span class="mi">5</span><span class="p">[</span><span class="o">%</span><span class="mi">1</span><span class="p">]</span>
+  <span class="o">%</span><span class="mi">5</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">%</span><span class="mi">2</span>
+  <span class="o">%</span><span class="mi">5</span><span class="p">[</span><span class="o">%</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>              <span class="p">;;;</span> <span class="n">b</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
+
+  <span class="n">s</span> <span class="o">=</span> <span class="n">s</span> <span class="o">+</span> <span class="o">%</span><span class="mi">2</span>               <span class="p">;;;</span> <span class="n">s</span> <span class="o">=</span> <span class="n">s</span> <span class="o">+</span> <span class="n">b</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">i</span><span class="p">]</span>
+
+  <span class="o">%</span><span class="mi">2</span> <span class="o">=</span> <span class="mi">1</span>                  <span class="p">;;;</span> <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="o">%</span><span class="mi">2</span>
+  <span class="n">goto</span> <span class="n">for2</span>               <span class="p">;;;</span> <span class="n">endwhile</span>
+  <span class="n">label</span> <span class="n">endfor2</span> <span class="p">:</span>
+
+  <span class="n">_result</span> <span class="o">=</span> <span class="n">s</span>
+  <span class="k">return</span>
+<span class="n">endfunction</span>
+
+<span class="n">function</span> <span class="n">main</span>
+  <span class="nb">vars</span>
+    <span class="n">x</span> <span class="mi">1</span>            <span class="p">;;;</span> <span class="nb">int</span> <span class="n">x</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="nb">sum</span>
+    <span class="n">i</span> <span class="mi">1</span>
+    <span class="n">n</span> <span class="mi">1</span>
+    <span class="nb">sum</span> <span class="mi">1</span>
+    <span class="n">a</span> <span class="mi">10</span>           <span class="p">;;;</span> <span class="nb">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span>
+  <span class="n">endvars</span>
+
+  <span class="n">readi</span> <span class="n">x</span>
+  <span class="n">n</span> <span class="o">=</span> <span class="mi">10</span>                  <span class="p">;;;</span> <span class="n">n</span><span class="o">=</span><span class="mi">10</span>
+
+  <span class="p">;;;</span> <span class="n">fill</span> <span class="n">array</span> <span class="k">with</span> <span class="n">numbers</span> <span class="kn">from</span> <span class="nn">x</span> <span class="n">to</span> <span class="n">x</span><span class="o">+</span><span class="mi">9</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>                    <span class="p">;;;</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span>
+  <span class="n">label</span> <span class="n">for1</span> <span class="p">:</span>             <span class="p">;;;</span> <span class="k">while</span> <span class="p">(</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="p">)</span>
+  <span class="o">%</span><span class="mi">1</span> <span class="o">=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span>
+  <span class="n">ifFalse</span> <span class="o">%</span><span class="mi">1</span> <span class="n">goto</span> <span class="n">endfor1</span>
+
+  <span class="o">%</span><span class="mi">2</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">i</span>               <span class="p">;;;</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="o">+</span><span class="n">i</span>
+  <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">%</span><span class="mi">2</span>
+
+  <span class="o">%</span><span class="mi">2</span> <span class="o">=</span> <span class="mi">1</span>                   <span class="p">;;;</span> <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="o">%</span><span class="mi">2</span>
+  <span class="n">goto</span> <span class="n">for1</span>                <span class="p">;;;</span> <span class="n">endwhile</span>
+  <span class="n">label</span> <span class="n">endfor1</span> <span class="p">:</span>
+
+  <span class="p">;;;</span> <span class="n">call</span> <span class="n">function</span>
+  <span class="n">pushparam</span>
+  <span class="o">%</span><span class="mi">1</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">a</span>                  <span class="p">;;;</span> <span class="k">pass</span> <span class="n">array</span> <span class="n">address</span> <span class="p">(</span><span class="n">reference</span> <span class="n">parameter</span><span class="p">)</span>
+  <span class="n">pushparam</span> <span class="o">%</span><span class="mi">1</span>
+  <span class="n">call</span> <span class="n">reverse_and_sum</span>
+  <span class="n">popparam</span>
+  <span class="n">popparam</span> <span class="nb">sum</span>             <span class="p">;;;</span> <span class="nb">sum</span> <span class="o">=</span> <span class="n">reverse_and_sum</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+  <span class="n">writei</span> <span class="nb">sum</span>  <span class="p">;;;</span> <span class="nb">print</span> <span class="nb">sum</span>
+  <span class="n">writeln</span>
+
+  <span class="p">;;;</span> <span class="nb">print</span> <span class="n">array</span> <span class="n">elements</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>                    <span class="p">;;;</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span>
+  <span class="n">label</span> <span class="n">for3</span> <span class="p">:</span>             <span class="p">;;;</span> <span class="k">while</span> <span class="p">(</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="p">)</span>
+  <span class="o">%</span><span class="mi">1</span> <span class="o">=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span>
+  <span class="n">ifFalse</span> <span class="o">%</span><span class="mi">1</span> <span class="n">goto</span> <span class="n">endfor3</span>
+
+  <span class="o">%</span><span class="mi">2</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>                <span class="p">;;;</span> <span class="n">write</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+  <span class="n">writei</span> <span class="o">%</span><span class="mi">2</span>
+  <span class="o">%</span><span class="mi">2</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span>                 <span class="p">;;;</span> <span class="n">write</span> <span class="s1">&#39; &#39;</span>
+  <span class="n">writec</span> <span class="o">%</span><span class="mi">2</span>
+
+  <span class="o">%</span><span class="mi">2</span> <span class="o">=</span> <span class="mi">1</span>                   <span class="p">;;;</span> <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="o">%</span><span class="mi">2</span>
+  <span class="n">goto</span> <span class="n">for3</span>                <span class="p">;;;</span> <span class="n">endwhile</span>
+  <span class="n">label</span> <span class="n">endfor3</span> <span class="p">:</span>
+
+  <span class="n">writeln</span>
+
+  <span class="k">return</span>
+<span class="n">endfunction</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><em>t</em>-Code Virtual Machine - Instruction set and operation manual</a><ul>
+<li><a class="reference internal" href="#executing-a-program-in-tvm">Executing a program in <em>t</em>VM</a></li>
+<li><a class="reference internal" href="#tvm-program-structure"><em>t</em>VM program structure</a></li>
+<li><a class="reference internal" href="#function-structure">Function structure</a></li>
+<li><a class="reference internal" href="#memory-usage-variables-and-temporal-registers">Memory usage, variables and temporal registers</a></li>
+<li><a class="reference internal" href="#instruction-set">Instruction set</a><ul>
+<li><a class="reference internal" href="#flow-control-instructions">Flow control instructions</a></li>
+<li><a class="reference internal" href="#assignment-instructions">Assignment instructions</a></li>
+<li><a class="reference internal" href="#aritmetic-relational-logical-binary-instructions">Aritmetic/relational/logical binary instructions</a></li>
+<li><a class="reference internal" href="#aritmetic-logical-unary-instructions">Aritmetic/logical unary instructions</a></li>
+<li><a class="reference internal" href="#assignment-instructions-with-indirections-or-indexing">Assignment instructions with indirections or indexing</a></li>
+<li><a class="reference internal" href="#stack-instructions">Stack instructions</a></li>
+<li><a class="reference internal" href="#function-calling-instructions">Function calling instructions</a></li>
+<li><a class="reference internal" href="#input-output-instructions">Input/output instructions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#example-programs">Example programs</a><ul>
+<li><a class="reference internal" href="#factorial">Factorial</a></li>
+<li><a class="reference internal" href="#example-computing-number-e">Example - Computing number <em>e</em></a></li>
+<li><a class="reference internal" href="#example-reversing-a-vector">Example - Reversing a vector</a></li>
+<li><a class="reference internal" href="#example-passing-arrays-per-reference">Example - Passing arrays per reference</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="modules/semerrors.html"
+                          title="previous chapter">Semantic Errors</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="steps.html"
+                          title="next chapter">Description of the tests</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/tvm.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="steps.html" title="Description of the tests"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="modules/semerrors.html" title="Semantic Errors"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CL Lab Project 2022 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="project.html" >Lab Project of Compilers - FIB UPC, 2022</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><em>t</em>-Code Virtual Machine - Instruction set and operation manual</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018-2022, Compilers. FIB, UPC..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.4.0.
+    </div>
+  </body>
+</html>

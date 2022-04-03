@@ -1,5 +1,2 @@
 Dubtes i cosetes:
-- acabar visitProcCall
-- acabar visitFuncCall
-- ajuntar les dos funcions anteriors(han de ser quasi igual)
-- mirar com fer el type check dels paràmetres
+- 

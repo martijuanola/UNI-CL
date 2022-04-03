@@ -1,0 +1,14 @@
+Semantic Errors
+---------------
+
+The SemErrors module allows the compiler to record errors, along with related information (such as the line where they happened).
+
+In this way, errors do not need to be emitted when they are found (which may lead to confusing order in the errors), but they can be printed ordered according to the line where they occur, once the analysis is completed.
+
+Also, the class takes care of generating the error with the appropriate text, which would ease e.g. translation of error messages to languages other than English.
+
+.. literalinclude:: ../../../practica/common/SemErrors.h
+   :language: c++
+   :linenos:
+   :lines: 39-107,130
+

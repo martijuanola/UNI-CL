@@ -1,0 +1,170 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Tree Decoration &#8212; CL Lab Project 2022 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Code Manager" href="code.html" />
+    <link rel="prev" title="SymbolTable" href="symboltable.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="code.html" title="Code Manager"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="symboltable.html" title="SymbolTable"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">CL Lab Project 2022 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../project.html" accesskey="U">Lab Project of Compilers - FIB UPC, 2022</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Tree Decoration</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tree-decoration">
+<h1>Tree Decoration<a class="headerlink" href="#tree-decoration" title="Permalink to this headline">¶</a></h1>
+<p>When traversing the tree for type checking, we may need to store information about a node
+in the tree that will be used later, either in type cheking, or in code generation.</p>
+<p>Associating information to certaing nodes in the parse tree is called <em>decorating</em> the tree.</p>
+<p>For example, an aritmethic expression (e.g. a sum) will have a type that will depend on the
+type of its operands (that may be other expressions, and in turn depend on the type of their
+operands…). Since expressions are not symbols, their type is not stored in the Symbol Table.
+Thus, when we climb the tree, we need to compute the type for each subexpression to allow
+nodes higher in the tree perform the checks they may need.</p>
+<p>Class <code class="docutils literal notranslate"><span class="pre">TreeDecoration</span></code> stores information associated to tree nodes, and offers methods
+to retrieve it.
+Information that our compiler will need to keep about nodes is:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>The type of the node (e.g. for nodes corresponding to expressions).</p></li>
+<li><p>Whether the node is an l-value (e.g. it is at the left-hand side of an assignment).</p></li>
+<li><p>The scope to which the node belongs.</p></li>
+</ul>
+</div></blockquote>
+<p>(note than not all nodes will be decorated with all this information. Some node will not
+be decorated at all)</p>
+<p>Nodes are represented as <code class="docutils literal notranslate"><span class="pre">antlr4::ParserRuleContext</span> <span class="pre">*</span></code>, that is, pointers to nodes in the ParseTree
+built by ANTLR using our grammar rules.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="c1">//////////////////////////////////////////////////////////////////////</span>
+<span class="linenos"> 2</span><span class="c1">// Class TreeDecoration: the nodes of the parser tree generated</span>
+<span class="linenos"> 3</span><span class="c1">// by the antlr4 parser, whose base type is</span>
+<span class="linenos"> 4</span><span class="c1">// antlr4::ParserRuleContext *, can have different attributes.</span>
+<span class="linenos"> 5</span><span class="c1">// TreeDecoration groups all of them, and uses different</span>
+<span class="linenos"> 6</span><span class="c1">// ParseTreeProperty to save this information.</span>
+<span class="linenos"> 7</span><span class="c1">// Currently three kinds of attributes may be present:</span>
+<span class="linenos"> 8</span><span class="c1">//   - scope, for nodes like the program, or functions</span>
+<span class="linenos"> 9</span><span class="c1">//   - type, for expressions or type especification</span>
+<span class="linenos">10</span><span class="c1">//   - isLValue, for expressions</span>
+<span class="linenos">11</span><span class="c1">// Different visitors set and access these attributes:</span>
+<span class="linenos">12</span><span class="c1">//   - SymbolsVisitor     [TypeCheck phase 1]</span>
+<span class="linenos">13</span><span class="c1">//       * set and access the scope attribute</span>
+<span class="linenos">14</span><span class="c1">//       * set and access the type attribute (in type declarations)</span>
+<span class="linenos">15</span><span class="c1">//   - TypeCheckVisitor   [TypeCheck phase 2]</span>
+<span class="linenos">16</span><span class="c1">//       * access the scope attribute</span>
+<span class="linenos">17</span><span class="c1">//       * set and access the type attribute (in expressions)</span>
+<span class="linenos">18</span><span class="c1">//       * set and access the isLValue attribute (in expressions)</span>
+<span class="linenos">19</span><span class="c1">//   - CodeGenVisitor     [Code Generation]</span>
+<span class="linenos">20</span><span class="c1">//       * access the scope attribute</span>
+<span class="linenos">21</span><span class="c1">//       * access the type attribute</span>
+<span class="linenos">22</span>
+<span class="linenos">23</span><span class="k">class</span><span class="w"> </span><span class="nc">TreeDecoration</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="linenos">24</span>
+<span class="linenos">25</span><span class="k">public</span><span class="o">:</span><span class="w"></span>
+<span class="linenos">26</span><span class="w">  </span><span class="n">TreeDecoration</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">27</span>
+<span class="linenos">28</span><span class="w">  </span><span class="c1">// Getters:</span>
+<span class="linenos">29</span><span class="w">  </span><span class="n">SymTable</span><span class="o">::</span><span class="n">ScopeId</span><span class="w"> </span><span class="nf">getScope</span><span class="w">    </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">30</span><span class="w">  </span><span class="n">TypesMgr</span><span class="o">::</span><span class="n">TypeId</span><span class="w">  </span><span class="nf">getType</span><span class="w">     </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">31</span><span class="w">  </span><span class="kt">bool</span><span class="w">              </span><span class="nf">getIsLValue</span><span class="w"> </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">32</span>
+<span class="linenos">33</span><span class="w">  </span><span class="c1">// Setters:</span>
+<span class="linenos">34</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">putScope</span><span class="w">    </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="n">SymTable</span><span class="o">::</span><span class="n">ScopeId</span><span class="w"> </span><span class="n">s</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">35</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">putType</span><span class="w">     </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="n">TypesMgr</span><span class="o">::</span><span class="n">TypeId</span><span class="w"> </span><span class="n">t</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">36</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">putIsLValue</span><span class="w"> </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">b</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">37</span>
+<span class="linenos">38</span><span class="p">};</span><span class="w">  </span><span class="c1">// class TreeDecoration</span>
+</pre></div>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="symboltable.html"
+                          title="previous chapter">SymbolTable</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="code.html"
+                          title="next chapter">Code Manager</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/modules/decoration.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="code.html" title="Code Manager"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="symboltable.html" title="SymbolTable"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">CL Lab Project 2022 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../project.html" >Lab Project of Compilers - FIB UPC, 2022</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Tree Decoration</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018-2022, Compilers. FIB, UPC..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.4.0.
+    </div>
+  </body>
+</html>

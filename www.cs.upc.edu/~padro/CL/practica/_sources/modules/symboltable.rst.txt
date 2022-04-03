@@ -1,0 +1,19 @@
+SymbolTable
+-----------
+
+The symbol table stores which *symbols* have been defined in the program (in ASL, that is
+just variable and function names) and associates each symbol with a *type* in ``TypeMgr``.
+
+The symbol table is also able to handle visibility scopes, so we can have separate tables for
+separate functions, or stacked tables for nested scopes.
+
+Thus, class ``SymTable`` stores which symbols have been defined in each scope, and we can
+query it about which is the *type* of symbol, whether a symbol is defined in the current
+function, or (if it is defined twice because there is a nested scope) which is the definition
+we should use at each moment.
+
+.. literalinclude:: ../../../practica/common/SymTable.h
+   :language: c++
+   :linenos:
+   :lines: 45-120,222
+

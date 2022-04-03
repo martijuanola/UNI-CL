@@ -1,0 +1,202 @@
+
+Description of the tests
+========================
+
+In order to incrementally build the compiler, a list of program tests has been proposed. This table summarizes what are the new elements of the Asl language that appear in each test with respect to the previous one.
+
+Some indications on modifying compiler components are also given, but should be taken *just as a guide*.
+
+Tests for parsing and type check
+--------------------------------
+
+The following tests can help you to define the grammar of the whole ASL language and to complete the semantic analysis (*SymbolsVisitor* and *TypeCheckVisitor* modules).
+Some changes in the ASL grammar will produce errors executing *g++* on *CodeGenVisitor.cpp*. Adjust this module when necessary.
+
+
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+|  Test          | New structures / new checks      | Changes in Asl grammar         | Changes in SymbolsVisitor        | Changes in TypeCheckVisitor       | Adjust in CodeGenVisitor    |
++================+==================================+================================+==================================+===================================+=============================+
+| ``jp_chkt_01`` | Other basic types,               | Update rule *type*             | Update variable declaration      | Type check of new expressions.    |                             |
+|                | new operators,                   | and rule *expr*.               | (new basic types).               | *Type coercion* from *int*        |                             |
+|                | values, parenthesis, ...         | New tokens, floats, ...        | See module *TypesMgr*            | to *float*                        |                             |
+|                | Use of *type coercion*           |                                |                                  | (update both .h and .cpp)         |                             |
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+| ``jp_chkt_02`` | Multiple variable                | Update variable declaration    | Update variable declaration      | (new value *true*)                | Fix access to the text of   |
+|                | declarations in a single line.   |                                |                                  |                                   | the *first* variable to     |
+|                | (new token *true*)               |                                |                                  |                                   | avoid compilation error     |
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+| ``jp_chkt_03`` | *while* and *return* statements. | Update rule *statement*        |                                  | Type check of new statements      | Fix access to *statement*   |
+|                | *else* in conditionals.          |                                |                                  | (update both .h and .cpp)         | children in *if* (there are |
+|                | (new operator *!=*)              |                                |                                  | Fix access to *statement* in *if* | two now) to avoid           |
+|                | (new operator *!=*)              |                                |                                  | children (there are two now)      | compilation error           |
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+| ``jp_chkt_04`` | Functions may have *parameters*  | Update function                | Update *visitFunction* to        |                                   |                             |
+|                | and return values                | declaration (use new rules).   | create the appropriate function  |                                   |                             |
+|                |                                  | Update return statement        | type. See module *TypesMgr*.     |                                   |                             |
+|                |                                  |                                | **Hint:** add new visit methods  |                                   |                             |
+|                |                                  |                                | to process parameters            |                                   |                             |
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+| ``jp_chkt_05`` | Array access in                  | Update rules *left_expr*       |                                  | Add new visitors for array        | Modify the visitor for      |
+|                | expressions and in *l-value*     | and *expr*                     |                                  | access in *left_expr* and in      | rule *left_expr* to         |
+|                | expressions                      |                                |                                  | *expr* (update both .h and .cpp)  | use the new visit method    |
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+| ``jp_chkt_06`` | Call to function as a form       | Update rule *expr* to accept   |                                  | Add new visitors for function     |                             | 
+|                | of expression.                   | function calls                 |                                  | call. Type check the expression   |                             |
+|                | Functions without parametres     |                                |                                  | appropiately                      |                             |
+|                |                                  |                                |                                  | (update both .h and .cpp)         |                             |
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+| ``jp_chkt_07`` | Call to function with parameters,|                                |                                  | Type check arguments              |                             |
+|                | without errors in arguments.     |                                |                                  | (*actual* parameters)             |                             |
+|                | No *main* function detection     |                                |                                  |                                   |                             |
+|                | (automatic)                      |                                |                                  |                                   |                             |
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+| ``jp_chkt_08`` | Call to procedures with          | Update statements              |                                  | Type check of function call       |                             |
+|                | parameters, without errors in    |                                |                                  | and compute expression type.      |                             |
+|                | arguments. Inappropriate calls   |                                |                                  | Type check arguments              |                             |
+|                | to procedures and functions,     |                                |                                  | (*actual* parameters)             |                             |
+|                | regardless of arguments          |                                |                                  |                                   |                             |
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+| ``jp_chkt_09`` | Incorrect use of a function.     |                                |                                  | Compute properly the *IsLValue*   |                             | 
+|                | *l-value* expresions in *read*   |                                |                                  | decoration of the identifiers     |                             |
+|                |                                  |                                |                                  | (probably nothing)                |                             |
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+| ``jp_chkt_10`` | Array declarations               | New structured *type*.         | Add new visit methods to precess | Probably nothing                  |                             |
+|                |                                  | **Hint:** use 2 rules, *type*  | types. See module *TypesMgr*.    |                                   |                             |
+|                |                                  | and *basic_type*               | Note: remember that functions    |                                   |                             |
+|                |                                  |                                | only return *basic* types        |                                   |                             |   
+|                |                                  |                                | (update both .h and .cpp)        |                                   |                             |   
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+| ``jp_chkt_11`` | Use of *read* statement          |                                |                                  | Probably nothing if type check    |                             |
+|                |                                  |                                |                                  | of array access is correct        |                             |
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+| ``jp_chkt_12`` | Extensive use of *return*        |                                | Note: remember that the first    | Update type check of *return*     |                             |
+|                | statement in procedures and      |                                | declaration of an identifier     | statement.                        |                             |
+|                | functions, with and without      |                                | *in a given scope* prevails      | **Hint:** the return type of the  |                             |
+|                | *type coercion*.                 |                                | over the rest (on *that scope*)  | current function can be obtained  |                             |
+|                | 			            |                                |                                  | from SymTab in *visitFunction*,   |                             |
+|                | 			            |                                |                                  | and saved/retrieved with the      |                             |
+|                | 			            |                                |                                  | methods *setCurrentFunctionTy*    |                             |
+|                | 			            |                                |                                  | and *getCurrentFunctionTy*        |                             |
+|                | 			            |                                |                                  | (available in TypeCheckVisitor).  |                             |
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+| ``jp_chkt_13`` | Check undeclared identifiers     |                                |                                  |                                   |                             |
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+| ``jp_chkt_14`` | Check that parameters must be    |                                | Nothing if *visitFunction*       | In a function call, remember      |                             |
+|                | declared in the *local scope*,   |                                | was properly updated in          | that arguments (*actual*          |                             |
+|                | with redeclarations of symbols   |                                | the test ``jp_chck_04``.         | *parameters*) must always     be  |                             |
+|                | in the same scope.               |                                | Note: remember that the first    | processed. Now, also type check   |                             |
+|                | Also, function calls may have    |                                | declaration of an identifier     | *actual* vs. *formal* parameters  |                             |
+|                | errors due to the type of the    |                                | *in a given scope* prevails      | See module *SemErrors*            |                             |
+|                | *arguments*                      |                                | over the rest (on that *scope*)  |                                   |                             |
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+| ``jp_chkt_15`` | Similar to ``jp_chck_14`` and    |                                |                                  |                                   |                             |
+|                | and previous ones: function calls|                                |                                  |                                   |                             |
+|                | with parameters and arrays       |                                |                                  |                                   |                             |
+|                | involved                         |                                |                                  |                                   |                             |
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+| ``jp_chkt_16`` | Similar to ``jp_chck_15`` and    |                                |                                  |                                   |                             |
+|                | the previous ones: function calls|                                |                                  |                                   |                             |
+|                | with parameters and arrays       |                                |                                  |                                   |                             |
+|                | involved                         |                                |                                  |                                   |                             |
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+| ``jp_chkt_17`` | Similar to ``jp_chck_16`` and    |                                |                                  |                                   |                             |
+|                | the previous ones: function calls|                                |                                  |                                   |                             |
+|                | with parameters, assignment to   |                                |                                  |                                   |                             |
+|                | to an array, ...                 |                                |                                  |                                   |                             |
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+| ``jp_chkt_18`` | Function and procedure calls     |                                |                                  | Type check function and procedure |                             |
+|                | may have a wrong number of       |                                |                                  | calls to detect also these errors.|                             |
+|                | arguments                        |                                |                                  | See module *SemErrors*            |                             |
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+| ``jp_chkt_19`` | Use of operator *modulo* (%)     | (Update rule *expr*)           |                                  | Type check the operator *modulo*  |                             |
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+| ``jp_chkt_20`` | Array assignments, arrays as     |                                |                                  | Probably nothing                  |                             |
+|                | parameters, *type coercion*, ... |                                |                                  |                                   |                             |
+|                | Similar to previous tests        |                                |                                  |                                   |                             |
++----------------+----------------------------------+--------------------------------+----------------------------------+-----------------------------------+-----------------------------+
+
+
+
+Tests for code generation
+-------------------------
+
+The following tests can help you to complete the code generation (*CodeGenVisitor* module).
+Some changes may involve your ASL grammar and/or type check. Adjust *Asl.g4* and
+*TypeCheckVisitor* module if necessary.
+
++----------------+----------------------------------+-------------------------+----------------------------+------------------------------------+
+|  Test          | New structures / new code        | Adjust in Asl grammar   | Adjust in TypeCheckVisitor | Changes in CodeGenVisitor          |
++================+==================================+=========================+============================+====================================+
+| ``jp_genc_01`` | Multiple variable declarations   |                         |                            | Update variable declaration.       |
+|                | in a single line.                |                         |                            | Update code for `write` statement. |
+|                | Other basic types, new operators,|                         |                            | Generate code for new              |
+|                | values, parenthesis,...          |                         |                            | expressions, with                  |
+|                | *Type coercion* in some          |                         |                            | *coercion* `int`                   |
+|                | expressions. Extend `write`      |                         |                            | :math:`\rightarrow` `float` in     |
+|                | statement with new types         |                         |                            | *arithmetic* operators.            |
+|                |                                  |                         |                            | (Update both .h and .cpp).         |
+|                |                                  |                         |                            | See module *code*                  |
++----------------+----------------------------------+-------------------------+----------------------------+------------------------------------+
+| ``jp_genc_02`` | Use of `while` statement. New    | If necessary, add value | If necessary, type check   | Generate code for `while`          |
+|                | operators `>`, `<` (without      | `false`                 | the new value              | statement, and for new expressions |
+|                | *type coercion*). Boolean values |                         |                            |                                    |
+|                | `true` and `false`               |                         |                            |                                    |
++----------------+----------------------------------+-------------------------+----------------------------+------------------------------------+
+| ``jp_genc_03`` | Functions may have *parameters*  |                         |                            | Update function declaration        |
+|                | and return values. Call to a     |                         |                            | (`visitFunction`).                 |
+|                | function as a form of expression |                         |                            | Add new visitors for function      |
+|                | (only parameters of *basic*      |                         |                            | call, and generate code for this   |
+|                | *types*). Use of `return expr`   |                         |                            | expression appropiately            |
+|                | statement (without *type*        |                         |                            | (update both .h and .cpp).         |
+|                | *coercion*)                      |                         |                            | See module *code*                  |
++----------------+----------------------------------+-------------------------+----------------------------+------------------------------------+
+| ``jp_genc_04`` | Call to a procedure with         |                         |                            | Update procedure call to           |
+|                | *parameters* of *basic types*    |                         |                            | allow *parameters*.                |
+|                | (without *type coercion*).       |                         |                            | Relational operators               |
+|                | New operator `<=` with *type*    |                         |                            | with *coercion* `int`              |
+|                | *coercion*                       |                         |                            | :math:`\rightarrow` `float`        |
++----------------+----------------------------------+-------------------------+----------------------------+------------------------------------+
+| ``jp_genc_05`` | Use of *array* type in           | If necessary, complete  | If necessary, complete     | Update *assignment* statement:     |
+|                | declarations of local variables. | the `if` statement      | the type check of the `if` | now a value can be assigned        |
+|                | Array access in expressions, and | with `else` branch      | statement                  | to an array position.              |
+|                | in *l-value* expressions.        |                         |                            | Update `if` statement. Update      |
+|                | `if-then-else` statement.        |                         |                            | function call to allow *coercion*  |
+|                | Function calls with *type*       |                         |                            | in actual *parameters*             |
+|                | *coercion* in parameters         |                         |                            |                                    |
++----------------+----------------------------------+-------------------------+----------------------------+------------------------------------+
+| ``jp_genc_06`` | *Type coercion* in asssignments, |                         |                            | Update *assignment* to allow       |
+|                | and in actual parameters of      |                         |                            | *coercion*. Update `read`          |
+|                | procedure calls.                 |                         |                            | statement. Update code generation  |
+|                | Use of `read` statement into non |                         |                            | in "procedure" calls               |
+|                | `int` expressions. Call to       |                         |                            |                                    |
+|                | functions discarding the result  |                         |                            |                                    |
+|                | (like a procedure)               |                         |                            |                                    |
++----------------+----------------------------------+-------------------------+----------------------------+------------------------------------+
+| ``jp_genc_07`` | Use of parameters of type        |                         |                            | Update procedure call to allow     |
+|                | `array`: access to the value and |                         |                            | actual *parameters* of type        |
+|                | to the  address of an array      |                         |                            | *array* (passed by *reference*).   |
+|                | position. Procedure calls with   |                         |                            | Only local arrays are passed.      |
+|                | actual parameters of type array  |                         |                            |                                    |
+|                | (passed by *reference*)          |                         |                            |                                    |
++----------------+----------------------------------+-------------------------+----------------------------+------------------------------------+
+| ``jp_genc_08`` | Function calls with actual       |                         |                            | Update function call to allow      |
+|                | parameters of type array         |                         |                            | actual *parameters* of type        |
+|                | (passed by *reference*)          |                         |                            | *array* (passed by *reference*).   |
+|                |                                  |                         |                            | Only local arrays are passed       |
++----------------+----------------------------------+-------------------------+----------------------------+------------------------------------+
+| ``jp_genc_09`` | Definition and use of the        |                         |                            | Probably nothing                   |
+|                | function `factorial`             |                         |                            |                                    |
++----------------+----------------------------------+-------------------------+----------------------------+------------------------------------+
+| ``jp_genc_10`` | Definition and use of the        |                         |                            | Probably nothing, but check        |
+|                | function `prod_escalar`          |                         |                            | the pass of arrays as parameters   |
+|                | (*dot product* of two arrays)    |                         |                            |                                    |
++----------------+----------------------------------+-------------------------+----------------------------+------------------------------------+
+| ``jp_genc_11`` | Extend `write` statement with    |                         |                            | Update `write` statement.          |
+|                | *char* expression. Operator      |                         |                            | Add *modulo* operator in           |
+|                | *modulo*. Values of type *char*  |                         |                            | *arithmetic* expressions.          |
+|                |                                  |                         |                            | Generate code for new values       |
++----------------+----------------------------------+-------------------------+----------------------------+------------------------------------+
+| ``jp_genc_12`` | Array assignment (*a = b*),      |                         |                            | Update assignment statement        |
+|                | where *a,b* may be local         |                         |                            |                                    |
+|                | variables and/or parameters      |                         |                            |                                    |
++----------------+----------------------------------+-------------------------+----------------------------+------------------------------------+

@@ -1,0 +1,33 @@
+Tree Decoration
+---------------    
+
+When traversing the tree for type checking, we may need to store information about a node
+in the tree that will be used later, either in type cheking, or in code generation.
+
+Associating information to certaing nodes in the parse tree is called *decorating* the tree.
+
+For example, an aritmethic expression (e.g. a sum) will have a type that will depend on the
+type of its operands (that may be other expressions, and in turn depend on the type of their
+operands...). Since expressions are not symbols, their type is not stored in the Symbol Table.
+Thus, when we climb the tree, we need to compute the type for each subexpression to allow
+nodes higher in the tree perform the checks they may need.
+  
+Class ``TreeDecoration`` stores information associated to tree nodes, and offers methods
+to retrieve it.
+Information that our compiler will need to keep about nodes is: 
+
+ - The type of the node (e.g. for nodes corresponding to expressions).
+ - Whether the node is an l-value (e.g. it is at the left-hand side of an assignment). 
+ - The scope to which the node belongs.
+
+(note than not all nodes will be decorated with all this information. Some node will not
+be decorated at all)
+
+Nodes are represented as ``antlr4::ParserRuleContext *``, that is, pointers to nodes in the ParseTree
+built by ANTLR using our grammar rules.
+   
+.. literalinclude:: ../../../practica/common/TreeDecoration.h
+   :language: c++
+   :linenos:
+   :lines: 41-77,83
+

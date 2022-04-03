@@ -1,0 +1,66 @@
+
+        
+:index:`Introduction to ANTLR4`
+===============================
+
+Preparing the environment
+-------------------------
+
+First of all, let's define some PATHs and variables that will ease the execution of the required tools.
+
+Execute (just once):
+
+::
+
+   cat $HOME/assig/cl/tcshrc.CL-GRAU.antlr4 >> ~/.tcshrc && source ~/.tcshrc
+
+
+Session 1
+---------
+
+The first session consists of building a calculator able to compute simple aritmethic expressions.
+
+We are provided a base grammar ``Expr.g4``, and different example programs that traverse the generated tree.
+
+Your professor will explain the initial example and how each example works.
+
+You should then finish the calculator adding other operations.
+
+* You will find the examples for this season in folder `$HOME/assig/cl/intro` in FIB inLab server, or you can get it from :download:`here <files/session1.tgz>`.
+
+Session 2
+---------
+
+In session 2 we will extend the calculator built in session 1 with the possibility to have variables where intermediate values are stored.
+
+We will also further explore tree post-processing methods to end up building a calculator with variables and complex commands.
+
+* You will find the examples for this season in folder `$HOME/assig/cl/intro` in FIB inLab server, or you can get it from :download:`here <files/session2.tgz>`.
+
+  
+Useful tools for grammar development
+------------------------------------
+
+To develop and debug our grammar, it is useful to visualize the parse trees it builds.
+
+Antlr4 provides ``grun``, a java tool able to provide this visualization.
+
+Since ``grun`` is written in java, it requires the java classes for our grammar. Our ``Makefile`` creates only C++ classes, so we will need to compile the java version:
+::
+
+   antlr4 myGrammar.g4
+   javac *.java
+
+Once this is done, we can run ``grun`` to obtain the tree for a given input:
+
+To display the tree in parenthesized format:
+::
+
+   grun myGrammar myInitialSymbol -tree inputfile
+
+To display the tree in graphical format:
+::
+
+   grun myGrammar myInitialSymbol -gui inputfile
+
+In both above commands ``inputfile`` may be ommited and typed in ``stdin`` ending with ``ctl-D``

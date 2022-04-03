@@ -1,0 +1,571 @@
+
+:index:`tVM`
+:index:`t-Code Virtual Machine`
+
+*t*-Code Virtual Machine - Instruction set and operation manual
+===============================================================
+
+This page describes *t*\ VM, a virtual machine that runs *t*-code, which is a low level 3-address code.
+                       
+Is is called *t*-code because the virtual machine has a very simple
+set of instructions and thus it is necessary to use a lot of *t*\ emporal
+registers to store intermediate results.
+
+This document describes the instructions that the VM can process, as
+well as how to execute a program on it.
+
+Executing a program in *t*\ VM
+------------------------------
+
+To execute a program, just run the VM with the name of the program file
+as an argument
+
+::
+
+    ./tvm myprogram.t
+
+You can add the flag ``--debug`` to get details about the machine status
+while it executes your program.
+
+::
+
+    ./tvm myprogram.t --debug
+
+*t*\ VM program structure
+-------------------------
+
+A program for *t*\ VM is just a list of functions. Exactly one of the functions must
+be named ``main``
+
+::
+
+    function main  ;;; this is the main program
+        ...
+    endfunction
+
+    function f1    ;;; another function
+        ...
+    endfunction
+
+    ... etc
+
+The string ``;;;`` starts a comment that will last until the end of the
+line. Comments can appear anywhere.
+
+Function structure
+------------------
+
+Each function has three sections:
+
+-  Section ``params`` is optional, and declares the parameters the
+   function expects to find in the stack.
+-  Parameters are declared in the order they must be pushed.
+-  Parameters must be pushed by the caller.
+-  Function ``main`` can not have ``params`` section.
+-  All parameters use exactly one memory position.
+-  Section ``vars`` is optional, and lists the function local variables,
+   with their sizes.
+-  Finally, there is the function body which is a list of instructions.
+   The execution of the function ends when a ``return`` instruction is
+   found.
+
+Example function:
+
+::
+
+    function f1
+       params
+          p1
+          p2
+       endparams
+       vars
+          v1 1
+          a 10
+       endvars
+
+       ... instructions go here ...
+       return 
+    endfunction
+
+Memory usage, variables and temporal registers
+----------------------------------------------
+
+-  *t*\ VM functions handle only parameters and local variables. All of them
+   are stored in the stack.
+-  Function result value is handled as an additional parameter, that has
+   to be pushed and popped by the caller.
+-  Function parameters use one memory position (32 bits).
+-  Variables can use any number of memory positions.
+-  Variables of sizes larger than 1 can be used as array base addresses
+   and accessed with indexing instructions.
+-  Apart from stack memory, *t*\ VM has temporal registers, identified as
+   ``%1``, ``%2``, ``%3``, ...
+
+   -  There is no limit to the number of used temporal registers.
+   -  Temporal registers are local to each function activation, and
+      saved automatically by the VM between calls.
+
+Instruction set
+---------------
+
+Flow control instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+ +----------------------------------+-----------------------------------------------------+
+ | *Instruction*                    | *Effect*                                            |
+ +==================================+=====================================================+
+ | ``label label-name :``           | Define a label in this position, to be jumped to.   |
+ +----------------------------------+-----------------------------------------------------+
+ | ``goto label-name``              | Continue execution at given label.                  |
+ +----------------------------------+-----------------------------------------------------+
+ | ``ifFalse addr goto label-name`` | If the content of variable/temporal ``addr``        |
+ |                                  | is zero continue execution at given label.          |
+ +----------------------------------+-----------------------------------------------------+
+
+
+All labels are local to functions. No jumps between functions are
+allowed.
+
+
+Assignment instructions
+^^^^^^^^^^^^^^^^^^^^^^^
+
+ +-------------------+-----------------------------------------------------+
+ | *Instruction*     | *Effect*                                            |
+ +===================+=====================================================+
+ | ``addr = 99``     | Load integer value into variable/temporal ``addr``. |
+ +-------------------+-----------------------------------------------------+
+ | ``addr = 9.99``   | Load float value into variable/temporal ``addr``.   |
+ +-------------------+-----------------------------------------------------+
+ | ``addr = 'A'``    | Load char value into variable/temporal ``addr``.    |
+ |                   | Escaped chars ``'\t'`` and ``'\n'`` are allowed.    |
+ +-------------------+-----------------------------------------------------+
+ | ``addr1 = addr2`` | Copy value from variable/temporal ``addr2`` to      |
+ |                   | variable/temporal ``addr1``.                        |
+ +-------------------+-----------------------------------------------------+
+
+
+
+Aritmetic/relational/logical binary instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+ +----------------------------------+----------------------------------------------+
+ | *Instruction*                    | *Effect*                                     |
+ +==================================+==============================================+
+ |``addr1 = addr2 operation addr3`` | Perform ``operation`` with variable/temporal |
+ |                                  | ``addr2`` and ``addr3`` and store result in  |
+ |                                  | variable/temporal ``addr1``.                 |
+ +----------------------------------+----------------------------------------------+
+
+ +----------------------------------+-------------------------------------------------------------------------+
+ | *Valid operations are:*          |                                                                         | 
+ +----------------------------------+-------------------------------------------------------------------------+
+ | ``+`` ``-`` ``*`` ``/``          | Aritmetic operations with integer operands and integer result.          |
+ +----------------------------------+-------------------------------------------------------------------------+
+ | ``+.`` ``-.`` ``*.`` ``/.``      | Aritmetic operations with float operands and float result.              |
+ +----------------------------------+-------------------------------------------------------------------------+
+ | ``==`` ``<=`` ``<``              | Comparison operators with integer operands and integer (0/1) result.    |
+ +----------------------------------+-------------------------------------------------------------------------+
+ | ``==.`` ``<=.`` ``<.``           | Comparison operators with float operands and integer (0/1) result.      |
+ +----------------------------------+-------------------------------------------------------------------------+
+ | ``and`` ``or``                   | Logical operators with integer (0/1) operands and integer (0/1) result. |
+ +----------------------------------+-------------------------------------------------------------------------+
+
+
+
+Aritmetic/logical unary instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+ +-----------------------------+-----------------------------------------------------+
+ | *Instruction*               | *Effect*                                            |
+ +=============================+=====================================================+
+ | ``addr1 = operation addr2`` | Perform ``operation`` on variable/temporal `addr2`` |
+ |                             | and store result in variable/temporal ``addr1``.    |
+ +-----------------------------+-----------------------------------------------------+
+
+ +-------------------------+-----------------------------------------------------------------------+
+ | *Valid operations are:* |                                                                       |
+ +-------------------------+-----------------------------------------------------------------------+
+ | ``-``                   | Sign change with integer operands and integer result.                 |
+ +-------------------------+-----------------------------------------------------------------------+
+ | ``-.``                  | Sign change with float operands and float result.                     |
+ +-------------------------+-----------------------------------------------------------------------+
+ | ``not``                 | Logical negation with integer (0/1) operands and integer (0/1) result.|
+ +-------------------------+-----------------------------------------------------------------------+
+ | ``float``               | Integer to float conversion with integer operand and float result.    |
+ +-------------------------+-----------------------------------------------------------------------+
+
+
+
+Assignment instructions with indirections or indexing
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+ +--------------------------+----------------------------------------------------------+
+ | *Instruction*            | *Effect*                                                 |
+ +==========================+==========================================================+
+ | ``addr1[addr2] = addr3`` | Copy content of variable/temporal ``addr3`` to ``addr2`` |
+ |                          | positions after ``addr1`` memory address.                |
+ |                          | If ``addr1`` is a variable or parameter, its address is  |
+ |                          | used. If it is a temporal, it is assumed to contain a    |
+ |                          | pointer to the base address to be used.                  |
+ +--------------------------+----------------------------------------------------------+
+ | ``addr1 = addr2[addr3]`` | Copy to variable/temporal ``addr1`` the content of       |
+ |                          | ``addr3`` positions after ``addr2`` memory address.      |
+ |                          | If ``addr2`` is a variable or parameter, its address is  |
+ |                          | used. If it is a temporal, it is assumed to contain a    |
+ |                          | pointer to the base address to be used.                  |
+ +--------------------------+----------------------------------------------------------+
+ | ``temp = &var``          | Copy to temporal ``temp`` the memory address of ``var``. |
+ +--------------------------+----------------------------------------------------------+
+ | ``addr1 = *temp``        | Copy to variable/temporal ``addr1`` the content of       |
+ |                          | memory address contained in temporal ``temp``.           |
+ +--------------------------+----------------------------------------------------------+
+ | ``*temp = addr1``        | Copy the content of variable/temporal ``addr1``          |
+ |                          | to the memory address contained in temporal ``temp``.    |
+ +--------------------------+----------------------------------------------------------+
+
+
+
+Stack instructions
+^^^^^^^^^^^^^^^^^^
+
+ ======================= ======================================
+ *Instruction*           *Effect*
+ ======================= ======================================
+ ``pushparam addr1``     Push content of variable/temporal ``addr1`` into the stack.
+ ``pushparam``           Push a zero into the stack (typically to reserve space, e.g. for a function result).
+ ``popparam addr1``      Get content of stack top into ``addr1`` and pop it from the stack.
+ ``popparam``            Pop top of the stack, ignoring its value.
+ ======================= ======================================
+
+
+
+Function calling instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+ =============== ==============================================
+ *Instruction*   *Effect*
+ =============== ==============================================
+ ``call fname``  Execute function ``fname``.
+ ``return``      End function execution and return control to caller.
+ =============== ==============================================
+
+
+
+Input/output instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+ ========================== ==============================================
+ *Instruction*              *Effect*
+ ========================== ==============================================
+ ``readi addr1``            Read an integer value and store it in ``addr1``.
+ ``readf addr1``            Read an float value and store it in ``addr1``.
+ ``readc addr1``            Read an character value and store it in ``addr1``.
+ ``writei addr1``           Write content of ``addr1`` as integer.
+ ``writef addr1``           Write content of ``addr1`` as float.
+ ``writec addr1``           Write content of ``addr1`` as character.
+ ``writes "somestring"``    Write a string literal.
+ ``writeln``                Write a newline.
+ ========================== ==============================================
+
+ 
+Example programs
+================
+
+Factorial
+---------
+
+::
+
+    ;;; This program reads an integer and computes
+    ;;; its factorial using a recursive function 
+
+    function main
+      vars
+       x 1            ;;; int x, y
+       y 1
+      endvars
+
+      readi x         ;;; read x
+      pushparam       ;;; make space for function result
+      pushparam x     ;;; pass parameter x
+      call fact       ;;; y = fact(x)
+      popparam        ;;; remove passed parameter x
+      popparam y      ;;; pop result and store in y
+      writei y        ;;; print y
+      writeln
+      return
+    endfunction
+
+    function fact
+      params
+        _result      ;;; _result is an internal variable used to 
+                     ;;; access the result position in the stack
+        n            ;;; received parameter
+      endparams
+
+      vars
+        f 1          ;;; local variable
+      endvars
+
+      %1 = 0
+      %1 = n == %1             ;;; compute %1 = (n==0)
+      ifFalse %1 goto else1    
+      f = 1                    ;;; n==0, so f=1
+      goto endif1
+
+      label else1 :             ;;; n!=0, prepare recursive call
+      pushparam                ;;; space for function result
+      %2 = 1                   ;;; %2 = n-1
+      %2 = n - %2           
+      pushparam %2             ;;; pass n-1 as parameter
+      call fact                ;;; f = fact(n-1)
+      popparam                 ;;; remove passed parameter n-1
+      popparam f               ;;; pop result and store it in f
+      f = n * f                ;;; f = n * f
+      label endif1 :            
+      _result = f              ;;; store f in space reserved for result
+      return
+    endfunction
+
+
+Example - Computing number *e*
+------------------------------
+::
+
+    ;;; This program computes number "e" with a precision "eps"
+    ;;; using the formula e = sum 1/(i!)  for all i>0
+      
+    function main
+      vars
+       e 1            ;;; float e, eant, eps, f
+       eant 1
+       eps 1
+       f 1
+       i 1            ;;; int i
+      endvars
+
+      eant = 0.0
+      e = 1.0
+      eps = 0.00001
+      f = 1.0
+      i = 1
+
+      label while1 :      ;;; while (eps < e-eant)
+      %1 = e -. eant
+      %1 = eps <. %1
+      ifFalse %1 goto endwhile1
+      eant = e
+      
+      %2 = 1.0           ;;; e = e + 1.0/f
+      %2 = %2 /. f       ;;; (e and f are float, note float 
+      e = e +. %2        ;;; operations "+." and "/.")
+
+      %2 = 1             ;;; i = i + 1
+      i = i + %2         ;;; (i is int -> integer addition "+")
+
+      %3 = float i       ;;; f = f * i
+      f = f *. %3        ;;; (i is converted to float before
+                         ;;; performing a float product "*.")
+
+      goto while1
+      label endwhile1 :   ;;; endwhile
+
+      writef e
+      writeln
+      
+      return
+    endfunction
+
+
+Example - Reversing a vector
+----------------------------
+
+::
+
+    ;;;  This program reads a number x, fills an array of 10
+    ;;;  elements with values x to x+9, reverses the array,
+    ;;;  and finally prints the array elements
+
+    function main
+      vars
+       x 1            ;;; int x, i, n
+       i 1
+       n 1
+       a 10           ;;; int a[10] 
+      endvars
+
+      readi x
+      n = 10                  ;;; n=10
+
+      ;;; fill array with numbers from x to x+9
+      i = 0                   ;;; i=0
+      label for1 :             ;;; while (i<n)
+      %1 = i < n
+      ifFalse %1 goto endfor1
+
+      %2 = x + i              ;;; a[i] = x+i 
+      a[i] = %2
+
+      %2 = 1                  ;;; i = i + 1
+      i = i + %2              
+      goto for1               ;;; endwhile 
+      label endfor1 :
+
+      ;;; reverse array, swapping x[i] with x[n-i-1] for all i<n/2
+      i = 0                   ;;; i=0
+      label for2 :             ;;; while (i<n/2)
+      %1 = 2
+      %2 = n / %1
+      %3 = i < %2
+      ifFalse %3 goto endfor2
+      x = a[i]                ;;; x = a[i]
+      %1 = 1                  ;;; a[i] = a[n-1-i]
+      %1 = n - %1
+      %1 = %1 - i
+      %2 = a[%1]
+      a[i] = %2 
+
+      a[%1] = x               ;;; a[n-1-i] = x
+
+      %2 = 1                  ;;; i = i + 1
+      i = i + %2              
+      goto for2               ;;; endwhile 
+      label endfor2 :
+
+      ;;; print array elements
+      i = 0                   ;;; i=0
+      label for3 :             ;;; while (i<n)
+      %1 = i < n
+      ifFalse %1 goto endfor3
+      
+      %2 = a[i]               ;;; write a[i]
+      writei %2
+      %2 = ' '                ;;; write ' ' 
+      writec %2
+
+      %2 = 1                  ;;; i = i + 1
+      i = i + %2              
+      goto for3               ;;; endwhile 
+      label endfor3 :
+
+      writeln
+
+      return
+    endfunction
+
+
+Example - Passing arrays per reference
+--------------------------------------
+
+::
+   
+   ;;;  This program reads a number x, fills an array of 10
+   ;;;  elements with values x to x+9, passes it to a
+   ;;;  function that reverses the array and computes the sum of
+   ;;;  the elements,  and finally prints the array elements
+   
+   function reverse_and_sum
+   
+     params
+       _result
+       b
+     endparams
+   
+     vars
+       i 1
+       n 1
+       x 1
+       s 1
+     endvars
+
+     ;;; reverse array, swapping x[i] with x[n-i-1] for all i<n/2
+     ;;; and add all elements in s
+     n = 10                  ;;; n=10
+     s = 0                   ;;; s=0
+     i = 0                   ;;; i=0
+     label for2 :            ;;; while (i<n/2)
+     %1 = 2
+     %2 = n / %1             
+     %3 = i < %2
+     ifFalse %3 goto endfor2
+     %5 = b                  ;;; b is a pointer to a
+     x = %5[i]               ;;; x = b[i]
+     s = s + x               ;;; s = s + b[i]  
+     %1 = 1                  ;;; b[i] = b[n-1-i]
+     %1 = n - %1
+     %1 = %1 - i
+     %2 = %5[%1]
+     %5[i] = %2 
+     %5[%1] = x              ;;; b[n-1-i] = x
+     
+     s = s + %2               ;;; s = s + b[n-1-i]
+     
+     %2 = 1                  ;;; i = i + 1
+     i = i + %2              
+     goto for2               ;;; endwhile 
+     label endfor2 :
+     
+     _result = s
+     return
+   endfunction
+
+   function main
+     vars
+       x 1            ;;; int x, i, n, sum
+       i 1
+       n 1
+       sum 1
+       a 10           ;;; int a[10]
+     endvars
+
+     readi x
+     n = 10                  ;;; n=10
+
+     ;;; fill array with numbers from x to x+9
+     i = 0                    ;;; i=0
+     label for1 :             ;;; while (i<n)
+     %1 = i < n
+     ifFalse %1 goto endfor1
+     
+     %2 = x + i               ;;; a[i] = x+i 
+     a[i] = %2
+     
+     %2 = 1                   ;;; i = i + 1
+     i = i + %2              
+     goto for1                ;;; endwhile 
+     label endfor1 :
+     
+     ;;; call function    
+     pushparam
+     %1 = &a                  ;;; pass array address (reference parameter)
+     pushparam %1
+     call reverse_and_sum
+     popparam
+     popparam sum             ;;; sum = reverse_and_sum(a)
+     
+     writei sum  ;;; print sum
+     writeln
+     
+     ;;; print array elements
+     i = 0                    ;;; i=0
+     label for3 :             ;;; while (i<n)
+     %1 = i < n
+     ifFalse %1 goto endfor3
+     
+     %2 = a[i]                ;;; write a[i]
+     writei %2
+     %2 = ' '                 ;;; write ' ' 
+     writec %2
+     
+     %2 = 1                   ;;; i = i + 1
+     i = i + %2              
+     goto for3                ;;; endwhile 
+     label endfor3 :
+     
+     writeln
+     
+     return
+   endfunction
+
+

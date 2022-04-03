@@ -1,0 +1,203 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Type Manager &#8212; CL Lab Project 2022 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="SymbolTable" href="symboltable.html" />
+    <link rel="prev" title="ASL Modules" href="../modules.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="symboltable.html" title="SymbolTable"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../modules.html" title="ASL Modules"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">CL Lab Project 2022 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../project.html" accesskey="U">Lab Project of Compilers - FIB UPC, 2022</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Type Manager</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="type-manager">
+<h1>Type Manager<a class="headerlink" href="#type-manager" title="Permalink to this headline">¶</a></h1>
+<p>This class stores information about all types existing in a program. A <em>type</em> stores
+information required to perform type checking.</p>
+<p>Note that this includes not only primitive types, but programmer-defined types such as <em>array of 10 integers</em>
+or <em>function that receives a boolean and an array of 5 char and returns an integer</em>.</p>
+<p>Thus, class <code class="docutils literal notranslate"><span class="pre">TypesMgr</span></code> class stores all seen types, and offers methods to find out information about them
+when we are type checking or generating code. For instance:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><em>is type X an array?</em></p></li>
+<li><p><em>is type X the same than type Y?</em></p></li>
+<li><p><em>is type X compatible with type Y?</em></p></li>
+<li><p><em>which type have the elements of type X?</em> (when <em>X</em> is an array type, obviously)</p></li>
+<li><p><em>which type returns type X?</em> (when <em>X</em> is a function type, obviously)</p></li>
+</ul>
+</div></blockquote>
+<p>Here is the whole definition of <code class="docutils literal notranslate"><span class="pre">TypesMgr</span></code>. Check the comments to find out what each method does.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="c1">////////////////////////////////////////////////////////////////</span>
+<span class="linenos"> 2</span><span class="c1">// Class TypesMgr: creates and stores types, and give access</span>
+<span class="linenos"> 3</span><span class="c1">// to type information.</span>
+<span class="linenos"> 4</span><span class="c1">// When a type is created the TypesMgr returns its TypeId.</span>
+<span class="linenos"> 5</span><span class="c1">// The TypeId is the public way to work with types.</span>
+<span class="linenos"> 6</span><span class="c1">// This TypeMgr works with five kinds of primitive types:</span>
+<span class="linenos"> 7</span><span class="c1">// integer, float, boolean, character and void. Also it</span>
+<span class="linenos"> 8</span><span class="c1">// recognizes two compound types: functions and fixed-size</span>
+<span class="linenos"> 9</span><span class="c1">// arrays. Finally there exist a special type &#39;error&#39;.</span>
+<span class="linenos">10</span>
+<span class="linenos">11</span><span class="k">class</span><span class="w"> </span><span class="nc">TypesMgr</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="linenos">12</span>
+<span class="linenos">13</span><span class="k">public</span><span class="o">:</span><span class="w"></span>
+<span class="linenos">14</span>
+<span class="linenos">15</span><span class="w">  </span><span class="c1">// The TypeId is an index in a vector</span>
+<span class="linenos">16</span><span class="w">  </span><span class="k">typedef</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">TypeId</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">17</span>
+<span class="linenos">18</span><span class="w">  </span><span class="c1">// Constructor</span>
+<span class="linenos">19</span><span class="w">  </span><span class="n">TypesMgr</span><span class="w"> </span><span class="p">();</span><span class="w"></span>
+<span class="linenos">20</span>
+<span class="linenos">21</span><span class="w">  </span><span class="c1">// Methods to create a Type and return its TypeId</span>
+<span class="linenos">22</span><span class="w">  </span><span class="c1">//   - Primitive and error types</span>
+<span class="linenos">23</span><span class="w">  </span><span class="n">TypeId</span><span class="w"> </span><span class="nf">createErrorTy</span><span class="w">     </span><span class="p">();</span><span class="w"></span>
+<span class="linenos">24</span><span class="w">  </span><span class="n">TypeId</span><span class="w"> </span><span class="nf">createIntegerTy</span><span class="w">   </span><span class="p">();</span><span class="w"></span>
+<span class="linenos">25</span><span class="w">  </span><span class="n">TypeId</span><span class="w"> </span><span class="nf">createFloatTy</span><span class="w">     </span><span class="p">();</span><span class="w"></span>
+<span class="linenos">26</span><span class="w">  </span><span class="n">TypeId</span><span class="w"> </span><span class="nf">createBooleanTy</span><span class="w">   </span><span class="p">();</span><span class="w"></span>
+<span class="linenos">27</span><span class="w">  </span><span class="n">TypeId</span><span class="w"> </span><span class="nf">createCharacterTy</span><span class="w"> </span><span class="p">();</span><span class="w"></span>
+<span class="linenos">28</span><span class="w">  </span><span class="n">TypeId</span><span class="w"> </span><span class="nf">createVoidTy</span><span class="w">      </span><span class="p">();</span><span class="w"></span>
+<span class="linenos">29</span><span class="w">  </span><span class="c1">//   - Compound types</span>
+<span class="linenos">30</span><span class="w">  </span><span class="n">TypeId</span><span class="w"> </span><span class="nf">createFunctionTy</span><span class="w">  </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">TypeId</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">paramsTypes</span><span class="p">,</span><span class="w"></span>
+<span class="linenos">31</span><span class="w">			    </span><span class="n">TypeId</span><span class="w">                      </span><span class="n">returnType</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">32</span><span class="w">  </span><span class="n">TypeId</span><span class="w"> </span><span class="nf">createArrayTy</span><span class="w">     </span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w">                </span><span class="n">size</span><span class="p">,</span><span class="w"></span>
+<span class="linenos">33</span><span class="w">		            </span><span class="n">TypeId</span><span class="w">                      </span><span class="n">elemType</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">34</span>
+<span class="linenos">35</span><span class="w">  </span><span class="c1">// Accessors to work with primitive and error types</span>
+<span class="linenos">36</span><span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="nf">isErrorTy</span><span class="w">            </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">37</span><span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="nf">isIntegerTy</span><span class="w">          </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">38</span><span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="nf">isFloatTy</span><span class="w">            </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">39</span><span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="nf">isBooleanTy</span><span class="w">          </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">40</span><span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="nf">isCharacterTy</span><span class="w">        </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">41</span><span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="nf">isVoidTy</span><span class="w">             </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">42</span><span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="nf">isNumericTy</span><span class="w">          </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">43</span><span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="nf">isPrimitiveTy</span><span class="w">        </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">44</span><span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="nf">isPrimitiveNonVoidTy</span><span class="w"> </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">45</span>
+<span class="linenos">46</span><span class="w">  </span><span class="c1">// Accessors to work with function types</span>
+<span class="linenos">47</span><span class="w">  </span><span class="kt">bool</span><span class="w">                        </span><span class="nf">isFunctionTy</span><span class="w">       </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid</span><span class="p">)</span><span class="w">     </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">48</span><span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">TypeId</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">getFuncParamsTypes</span><span class="w"> </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid</span><span class="p">)</span><span class="w">     </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">49</span><span class="w">  </span><span class="n">TypeId</span><span class="w">                      </span><span class="nf">getFuncReturnType</span><span class="w">  </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid</span><span class="p">)</span><span class="w">     </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">50</span><span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w">                 </span><span class="nf">getNumOfParameters</span><span class="w"> </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid</span><span class="p">)</span><span class="w">     </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">51</span><span class="w">  </span><span class="n">TypeId</span><span class="w">                      </span><span class="nf">getParameterType</span><span class="w">   </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid</span><span class="p">,</span><span class="w"></span>
+<span class="linenos">52</span><span class="w">					          </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">53</span><span class="w">  </span><span class="kt">bool</span><span class="w">                        </span><span class="nf">isVoidFunction</span><span class="w">     </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid</span><span class="p">)</span><span class="w">     </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">54</span>
+<span class="linenos">55</span><span class="w">  </span><span class="c1">// Accessors to work with array types</span>
+<span class="linenos">56</span><span class="w">  </span><span class="kt">bool</span><span class="w">         </span><span class="nf">isArrayTy</span><span class="w">        </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">57</span><span class="w">  </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">getArraySize</span><span class="w">     </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">58</span><span class="w">  </span><span class="n">TypeId</span><span class="w">       </span><span class="nf">getArrayElemType</span><span class="w"> </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">59</span>
+<span class="linenos">60</span><span class="w">  </span><span class="c1">// Methods to check different compatibilities of types</span>
+<span class="linenos">61</span><span class="w">  </span><span class="c1">//   - structurally equal?</span>
+<span class="linenos">62</span><span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="nf">equalTypes</span><span class="w">      </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid1</span><span class="p">,</span><span class="w"> </span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid2</span><span class="p">)</span><span class="w">     </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">63</span><span class="w">  </span><span class="c1">//   - comparable with the relational operator op?</span>
+<span class="linenos">64</span><span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="nf">comparableTypes</span><span class="w"> </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid1</span><span class="p">,</span><span class="w"> </span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid2</span><span class="p">,</span><span class="w"></span>
+<span class="linenos">65</span><span class="w">			</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">op</span><span class="p">)</span><span class="w">       </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">66</span><span class="w">  </span><span class="c1">//   - tidFrom values can be copied to tidTo?</span>
+<span class="linenos">67</span><span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="nf">copyableTypes</span><span class="w">   </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tidTo</span><span class="p">,</span><span class="w"> </span><span class="n">TypeId</span><span class="w"> </span><span class="n">tidFrom</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">68</span>
+<span class="linenos">69</span><span class="w">  </span><span class="c1">// Method to compute the size of a type (primitive type size = 1)</span>
+<span class="linenos">70</span><span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="nf">getSizeOfType</span><span class="w"> </span><span class="p">(</span><span class="n">TypeId</span><span class="w"> </span><span class="n">tid</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">71</span>
+<span class="linenos">72</span><span class="w">  </span><span class="c1">// Methods to convert to string and print types</span>
+<span class="linenos">73</span><span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="nf">to_string</span><span class="w"> </span><span class="p">(</span><span class="n">TypeId</span><span class="w">         </span><span class="n">tid</span><span class="p">)</span><span class="w">            </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">74</span><span class="w">  </span><span class="kt">void</span><span class="w">        </span><span class="nf">dump</span><span class="w">      </span><span class="p">(</span><span class="n">TypeId</span><span class="w">         </span><span class="n">tid</span><span class="p">,</span><span class="w"></span>
+<span class="linenos">75</span><span class="w">		         </span><span class="n">std</span><span class="o">::</span><span class="n">ostream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">os</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">76</span>
+<span class="linenos">77</span><span class="p">};</span><span class="w">  </span><span class="c1">// class TypesMgr</span>
+</pre></div>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="../modules.html"
+                          title="previous chapter">ASL Modules</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="symboltable.html"
+                          title="next chapter">SymbolTable</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/modules/typemanager.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="symboltable.html" title="SymbolTable"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../modules.html" title="ASL Modules"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">CL Lab Project 2022 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../project.html" >Lab Project of Compilers - FIB UPC, 2022</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Type Manager</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018-2022, Compilers. FIB, UPC..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.4.0.
+    </div>
+  </body>
+</html>

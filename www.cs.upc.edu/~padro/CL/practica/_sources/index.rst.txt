@@ -1,0 +1,49 @@
+.. CL Lab documentation master file
+
+:index:`Compilers - FIB UPC, 2022 - Lab documentation <Home>`
+=============================================================          
+
+.. toctree::
+   :hidden:
+
+   intro
+   project
+   install
+   
+The lab for CL course will be based on the use of `ANTLR4 <http://www.antlr.org/>`_, a powerful parser generator.
+
+The first two lab sessions will be devoted to getting acquainted with ANTLR4, and with the different possibilities it offers. We will do this following a simple example such as building a basic calculator.
+
+The rest of the sessions will be used to work on the project (building a compiler for a simple imperative language) in teams of two people.
+
+One of the lab sessions (towards half of the course) will be a practical exam on ANTLR4.
+The last lab session will be a final exam on the developed project.
+
+* :doc:`Introduction to ANTLR4 <intro>`
+* :doc:`Documentation for the lab Project <project>`
+
+  
+Installing ANTLR4 in your Linux
+-------------------------------
+
+If you want to work in your own computer, you'll need to install Antlr4 in it.
+Follow the instructions given :doc:`here <install>`.
+
+Download tVM Virtual machine for MacOS :download:`here <files/tvm-macos.tgz>`.
+
+
+Useful links
+------------
+
+* `ANTLR4 web site <http://www.antlr.org/>`_
+* `ANTLR4 runtime for C++ <https://github.com/antlr/antlr4/tree/master/runtime/Cpp>`_
+* `Documentation for ANTLR4 Java runtime <https://www.antlr.org/api/Java/index.html>`_ (C++ runtime is barely documented, but C++ API is pretty similar to Java API)
+
+
+
+.. Indices and tables
+.. ==================
+.. 
+.. * :ref:`genindex`
+.. * :ref:`modindex`
+.. * :ref:`search`
