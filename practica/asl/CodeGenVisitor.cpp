@@ -101,8 +101,8 @@ antlrcpp::Any CodeGenVisitor::visitDeclarations(AslParser::DeclarationsContext *
   DEBUG_ENTER();
   std::vector<var> lvars;
   for (auto & varDeclCtx : ctx->variable_decl()) {
-    var onevar = visit(varDeclCtx);
-    lvars.push_back(onevar);
+    std::vector<var> vars = visit(varDeclCtx);
+    lvars.insert(lvars.end(), vars.begin(), vars.end());
   }
   DEBUG_EXIT();
   return lvars;
@@ -112,10 +112,13 @@ antlrcpp::Any CodeGenVisitor::visitVariable_decl(AslParser::Variable_declContext
   DEBUG_ENTER();
   TypesMgr::TypeId   t1 = getTypeDecor(ctx->type());
   std::size_t      size = Types.getSizeOfType(t1);
+  std::vector<var> vars;
+  for (auto & id : ctx->ID()) {
+    var onevar = var{id->getText(), size};
+    vars.push_back(onevar);
+  }
   DEBUG_EXIT();
-  return var{ctx->ID(1)->getText(), size};
-  //abans era return var{ctx->ID()->getText(), size};
-  //canvi només per poder compilar
+  return vars;
 }
 
 antlrcpp::Any CodeGenVisitor::visitStatements(AslParser::StatementsContext *ctx) {
@@ -194,8 +197,11 @@ antlrcpp::Any CodeGenVisitor::visitWriteExpr(AslParser::WriteExprContext *ctx) {
   // std::string         offs1 = codAt1.offs;
   instructionList &   code1 = codAt1.code;
   instructionList &    code = code1;
-  // TypesMgr::TypeId tid1 = getTypeDecor(ctx->expr());
-  code = code1 || instruction::WRITEI(addr1);
+  TypesMgr::TypeId tid1 = getTypeDecor(ctx->expr());
+  if(Types.isIntegerTy(tid1)) code = code1 || instruction::WRITEI(addr1);
+  else if(Types.isFloatTy(tid1)) code = code1 || instruction::WRITEF(addr1);
+  else if(Types.isCharacterTy(tid1) code = code1 || instruction::WRITEC(addr1);
+  // faltaria bool
   DEBUG_EXIT();
   return code;
 }
