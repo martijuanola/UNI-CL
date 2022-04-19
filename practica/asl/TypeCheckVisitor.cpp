@@ -308,6 +308,15 @@ antlrcpp::Any TypeCheckVisitor::visitLeft_expr(AslParser::Left_exprContext *ctx)
   return 0;
 }
 
+antlrcpp::Any TypeCheckVisitor::visitParenthesis(AslParser::ParenthesisContext *ctx) {
+  DEBUG_ENTER();
+  visit(ctx->expr());
+  TypesMgr::TypeId t = getTypeDecor(ctx->expr());  
+  putTypeDecor(ctx, t);
+  DEBUG_EXIT();
+  return 0;
+}
+
 antlrcpp::Any TypeCheckVisitor::visitUnary(AslParser::UnaryContext *ctx) {
   DEBUG_ENTER();
   visit(ctx->expr());
