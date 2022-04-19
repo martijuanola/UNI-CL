@@ -118,8 +118,6 @@ int main(int argc, const char* argv[]) {
     return EXIT_FAILURE;
   }
   
-  exit(0);
-
   // create a third visitor that will return the generated code
   // for each part of the tree, and will store it in 'mycode'
   CodeGenVisitor codegenerator(types, symbols, decorations);
