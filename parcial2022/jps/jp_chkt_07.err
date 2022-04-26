@@ -1,0 +1,6 @@
+Line 8:12 error: Operator '+' with incompatible types.
+Line 10:2 error: Instruction 'if' requires a boolean condition.
+Line 11:11 error: Struct access to a non existent field name.
+Line 13:6 error: Struct access to a non existent field name.
+Line 14:2 error: Struct access to a non existent field name.
+Line 15:4 error: Assignment with incompatible types.

@@ -1,0 +1,22 @@
+Line 4:21 error: Operator 'not' with incompatible types.
+Line 4:29 error: Operator '<' with incompatible types.
+Line 8:6 error: Assignment with incompatible types.
+Line 8:9 error: Operator '+' with incompatible types.
+Line 16:10 error: Struct with some field already declared.
+Line 21:12 error: Operator '+' with incompatible types.
+Line 23:2 error: Instruction 'if' requires a boolean condition.
+Line 24:11 error: Struct access to a non existent field name.
+Line 26:6 error: Assignment with incompatible types.
+Line 27:6 error: Struct access to a non existent field name.
+Line 29:4 error: Assignment with incompatible types.
+Line 29:10 error: Operator '+' with incompatible types.
+Line 30:8 error: Parameter #1 with incompatible types in call to 'g'.
+Line 30:11 error: Struct access to a non existent field name.
+Line 31:2 error: Instruction 'if' requires a boolean condition.
+Line 31:7 error: Parameter #1 with incompatible types in call to 'g'.
+Line 34:2 error: Identifier 'z' is undeclared.
+Line 34:23 error: Parameter #1 with incompatible types in call to 'g'.
+Line 35:2 error: Identifier 'z1' is undeclared.
+Line 35:12 error: Operator '>' with incompatible types.
+Line 36:8 error: Identifier 'z2' is undeclared.
+Line 37:4 error: Assignment with incompatible types.
