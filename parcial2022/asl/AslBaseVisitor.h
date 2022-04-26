@@ -39,6 +39,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual antlrcpp::Any visitStruct_decl(AslParser::Struct_declContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual antlrcpp::Any visitType(AslParser::TypeContext *ctx) override {
     return visitChildren(ctx);
   }
@@ -123,7 +127,15 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual antlrcpp::Any visitStructIdent(AslParser::StructIdentContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual antlrcpp::Any visitIdent(AslParser::IdentContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitField(AslParser::FieldContext *ctx) override {
     return visitChildren(ctx);
   }
 

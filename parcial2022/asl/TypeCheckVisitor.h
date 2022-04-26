@@ -88,6 +88,8 @@ public:
   antlrcpp::Any visitValue(AslParser::ValueContext *ctx);
   antlrcpp::Any visitFuncCall(AslParser::FuncCallContext *ctx);
   antlrcpp::Any visitIdent(AslParser::IdentContext *ctx);
+  
+  antlrcpp::Any visitStructIdent(AslParser::StructIdentContext *ctx);
 
 private:
 

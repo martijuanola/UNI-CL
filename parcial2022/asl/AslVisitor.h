@@ -31,6 +31,8 @@ public:
 
     virtual antlrcpp::Any visitArray_decl(AslParser::Array_declContext *context) = 0;
 
+    virtual antlrcpp::Any visitStruct_decl(AslParser::Struct_declContext *context) = 0;
+
     virtual antlrcpp::Any visitType(AslParser::TypeContext *context) = 0;
 
     virtual antlrcpp::Any visitBasic_type(AslParser::Basic_typeContext *context) = 0;
@@ -73,7 +75,11 @@ public:
 
     virtual antlrcpp::Any visitValue(AslParser::ValueContext *context) = 0;
 
+    virtual antlrcpp::Any visitStructIdent(AslParser::StructIdentContext *context) = 0;
+
     virtual antlrcpp::Any visitIdent(AslParser::IdentContext *context) = 0;
+
+    virtual antlrcpp::Any visitField(AslParser::FieldContext *context) = 0;
 
 
 };

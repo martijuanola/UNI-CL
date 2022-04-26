@@ -28,9 +28,13 @@ variable_decl
 array_decl
         : ARRAY '[' INTVAL ']'  'of' basic_type
         ;
+        
+struct_decl
+		: STRUCT '{' field ':' basic_type (',' field ':' basic_type)* '}'
+		;
 
 type
-        : basic_type | array_decl
+        : basic_type | array_decl | struct_decl
         ;       
 
 basic_type    
@@ -57,8 +61,9 @@ statement
 
 // Grammar for left expressions (l-values in C++)
 left_expr
-        : ident '[' expr ']' 			
-        | ident							
+		: ident '.' field					
+        | ident '[' expr ']'
+        | ident
         ;
 
 // Grammar for expressions with boolean, relational and aritmetic operators
@@ -71,13 +76,18 @@ expr    : '(' expr ')'                          # parenthesis
         | expr op=OR expr                    	# boolean
         | (INTVAL|FLOATVAL|CHARVAL|BOOLVAL)   	# value
         | ident '(' (expr (',' expr)*)? ')'     # funcCall
+        | ident '.' field						# structIdent
         | ident '[' expr ']'			        # exprIdent
         | ident                               	# exprIdent
         ;
+        
 
 // Identifiers
 ident   : ID
         ;
+        
+field	: ID
+		;
 
 //////////////////////////////////////////////////
 /// Lexer Rules
@@ -110,7 +120,8 @@ INT       : 'int';
 FLOAT     : 'float';
 BOOL      : 'bool';
 CHAR      : 'char';
-ARRAY     : 'array' ;
+ARRAY     : 'array';
+STRUCT	  : 'struct';
 
 // ----- Statements -----
 IF        : 'if' ;

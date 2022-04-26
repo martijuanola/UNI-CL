@@ -102,12 +102,12 @@ int main(int argc, const char* argv[]) {
   SymTable       symbols(types);
   TreeDecoration decorations;
   SemErrors      errors;
-
+  
   // create a visitor that looks for variables and function declarations
   // in the tree and stores required information
   SymbolsVisitor symboldecl(types, symbols, decorations, errors);
   symboldecl.visit(tree);
-
+  
   // create another visitor that will perform type checkings wherever
   // it is needed (on expressions, assignments, parameter passing, etc)
   TypeCheckVisitor typecheck(types, symbols, decorations, errors);

@@ -159,15 +159,40 @@ antlrcpp::Any SymbolsVisitor::visitArray_decl(AslParser::Array_declContext *ctx)
   return 0;
 }
 
+antlrcpp::Any SymbolsVisitor::visitStruct_decl(AslParser::Struct_declContext *ctx) {
+  DEBUG_ENTER();
+  TypesMgr::TypeId newStruct = Types.createEmptyStructTy();
+  int i = 0;
+  for(auto field : ctx->field()) {
+	  visit(field);
+	  visit(ctx->basic_type(i));
+	  TypesMgr::TypeId fieldType = getTypeDecor(ctx->basic_type(i));
+	  if(not Types.existStructField(newStruct, field->getText())) {
+		  Types.addStructField(newStruct, field->getText(), fieldType);
+	  }
+	  else {
+		Errors.structRedeclaresFieldName(ctx);
+	  }
+	  i++;
+  }
+  putTypeDecor(ctx, newStruct);
+  DEBUG_EXIT();
+  return 0;
+}
+
 antlrcpp::Any SymbolsVisitor::visitType(AslParser::TypeContext *ctx) {
   DEBUG_ENTER();
   if(ctx->basic_type()) {
 	  visit(ctx->basic_type());
 	  putTypeDecor(ctx, getTypeDecor(ctx->basic_type()));
   }
-  else {
+  else if(ctx->array_decl()){
 	  visit(ctx->array_decl());
 	  putTypeDecor(ctx, getTypeDecor(ctx->array_decl()));
+  }
+  else if(ctx->struct_decl()) {
+	  visit(ctx->struct_decl());
+	  putTypeDecor(ctx, getTypeDecor(ctx->struct_decl()));
   }
   DEBUG_EXIT();
   return 0;
@@ -303,6 +328,21 @@ antlrcpp::Any SymbolsVisitor::visitIdent(AslParser::IdentContext *ctx) {
   DEBUG_EXIT();
   return r;
 }
+
+antlrcpp::Any SymbolsVisitor::visitStructIdent(AslParser::StructIdentContext *ctx) {
+  DEBUG_ENTER();
+  antlrcpp::Any r = visitChildren(ctx);
+  DEBUG_EXIT();
+  return r;
+}
+
+antlrcpp::Any SymbolsVisitor::visitField(AslParser::FieldContext *ctx) {
+  DEBUG_ENTER();
+  antlrcpp::Any r = visitChildren(ctx);
+  DEBUG_EXIT();
+  return r;
+}
+
 //fins aqui
 
 // Getters for the necessary tree node atributes:

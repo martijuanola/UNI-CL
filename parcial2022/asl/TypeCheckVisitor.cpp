@@ -86,12 +86,11 @@ antlrcpp::Any TypeCheckVisitor::visitFunction(AslParser::FunctionContext *ctx) {
   DEBUG_ENTER();
   SymTable::ScopeId sc = getScopeDecor(ctx);
   Symbols.pushThisScope(sc);
-  // Symbols.print();
+  //Symbols.print();
   
   //recalculate return type for returnvisitor
   if (ctx->type() != NULL) setCurrentFunctionTy(getTypeDecor(ctx->type()));
   else setCurrentFunctionTy(Types.createVoidTy());
-  
   
   visit(ctx->statements());
   Symbols.popScope();
@@ -99,9 +98,6 @@ antlrcpp::Any TypeCheckVisitor::visitFunction(AslParser::FunctionContext *ctx) {
   return 0;
 }
 
-// hauria d'anar func params?????
-
-//els 3 de sota estaven comentats
 antlrcpp::Any TypeCheckVisitor::visitDeclarations(AslParser::DeclarationsContext *ctx) {
 	DEBUG_ENTER();
 	antlrcpp::Any r = visitChildren(ctx);
@@ -122,7 +118,6 @@ antlrcpp::Any TypeCheckVisitor::visitType(AslParser::TypeContext *ctx) {
    DEBUG_EXIT();
    return r;
 }
-//fins aquí
 
 antlrcpp::Any TypeCheckVisitor::visitStatements(AslParser::StatementsContext *ctx) {
   DEBUG_ENTER();
@@ -137,13 +132,6 @@ antlrcpp::Any TypeCheckVisitor::visitAssignStmt(AslParser::AssignStmtContext *ct
   visit(ctx->expr());
   TypesMgr::TypeId t1 = getTypeDecor(ctx->left_expr());
   TypesMgr::TypeId t2 = getTypeDecor(ctx->expr());
-  
-  //REMOVE AFTER DEBUGING
-  /*std::cout << "(";
-  Types.dump(t1,std::cout);
-  std::cout << " , ";
-  Types.dump(t2,std::cout);
-  std::cout << ")" << std::endl;*/
   
   if ((not Types.isErrorTy(t1)) and (not Types.isErrorTy(t2)) and
       (not Types.copyableTypes(t1, t2)))
@@ -165,8 +153,8 @@ antlrcpp::Any TypeCheckVisitor::visitMapeig(AslParser::MapeigContext *ctx) {
 	  visit(ident);
   }
   
-  TypesMgr::TypeId a = getTypeDecor(ctx->ident()[0]);
-  TypesMgr::TypeId b = getTypeDecor(ctx->ident()[2]);
+  TypesMgr::TypeId a = getTypeDecor(ctx->ident(0));
+  TypesMgr::TypeId b = getTypeDecor(ctx->ident(2));
   
   //Arrays de la mateixa mida
   if((not Types.isErrorTy(a) and not Types.isArrayTy(a)) or 
@@ -178,17 +166,17 @@ antlrcpp::Any TypeCheckVisitor::visitMapeig(AslParser::MapeigContext *ctx) {
   }
 
   TypesMgr::TypeId belem = Types.getArrayElemType(b);
-  TypesMgr::TypeId x = getTypeDecor(ctx->ident()[1]);
+  TypesMgr::TypeId x = getTypeDecor(ctx->ident(1));
   
   //variable for mateix tipus que element array origen
   if ((not Types.isErrorTy(belem)) and (not Types.isErrorTy(x)) and
       (not Types.equalTypes(belem, x))) {
-	  if(not(Types.isFloatTy(belem) and (Types.isNumericTy(x)))) {
+	  if(not(Types.isFloatTy(x) and (Types.isNumericTy(belem)))) {
 		  Errors.mapWithIncompatibleControlVar(ctx);
 	  }
   }
   
-  TypesMgr::TypeId cond = getTypeDecor(ctx->expr()[0]);
+  TypesMgr::TypeId cond = getTypeDecor(ctx->expr(0));
   
   if(not Types.isErrorTy(cond) and not Types.isBooleanTy(cond)) {
 	  Errors.mapWithNonBooleanCondition(ctx);
@@ -206,8 +194,6 @@ antlrcpp::Any TypeCheckVisitor::visitMapeig(AslParser::MapeigContext *ctx) {
 		  }
 	  }
   }
-  
-  
   
   DEBUG_EXIT();
   return 0;
@@ -338,13 +324,33 @@ antlrcpp::Any TypeCheckVisitor::visitLeft_expr(AslParser::Left_exprContext *ctx)
   DEBUG_ENTER();
   visit(ctx->ident());
   TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
-  if(ctx->expr()) { //Array
+  
+  if(ctx->field()) {
+	  visit(ctx->field());
+	  
+	  if(not Types.isErrorTy(t1) and not Types.isStructTy(t1)) {
+		  Errors.structAccessWithNonStruct(ctx);
+	  }
+	  
+	  if(Types.isStructTy(t1)) { 
+		  std::string fieldName = ctx->field()->getText();
+		  if(not Types.existStructField(t1, fieldName)) {
+			  Errors.structAccessWithNonExistentField(ctx);
+		  }
+		  else {
+			  putTypeDecor(ctx, Types.getStructFieldTy(t1, fieldName));
+		  }
+	  }
+	  
+	  putIsLValueDecor(ctx, true);
+  }
+  else if(ctx->expr()) { //Array
 	  visit(ctx->expr());
 	  TypesMgr::TypeId t2 = getTypeDecor(ctx->expr());
 	  
 	  //No és tipus array
 	  if(not Types.isErrorTy(t1) and (not Types.isArrayTy(t1))) {
-	    Errors.nonArrayInArrayAccess(ctx);
+		Errors.nonArrayInArrayAccess(ctx);
 	  }
 	  else if(not Types.isErrorTy(t1)) putTypeDecor(ctx, Types.getArrayElemType(t1));
 	  //s'ha de comprovar que no sigui error que sino peta
@@ -352,7 +358,7 @@ antlrcpp::Any TypeCheckVisitor::visitLeft_expr(AslParser::Left_exprContext *ctx)
 	  
 	  //Expressió no és INT
 	  if((not Types.isErrorTy(t2)) and (not Types.isIntegerTy(t2)))
-	    Errors.nonIntegerIndexInArrayAccess(ctx->expr());
+		Errors.nonIntegerIndexInArrayAccess(ctx->expr());
 
 	  putIsLValueDecor(ctx, true);
   }
@@ -557,6 +563,32 @@ antlrcpp::Any TypeCheckVisitor::visitExprIdent(AslParser::ExprIdentContext *ctx)
   }
   DEBUG_EXIT();
   return 0;
+}
+
+antlrcpp::Any TypeCheckVisitor::visitStructIdent(AslParser::StructIdentContext *ctx) {
+	DEBUG_ENTER();
+	visit(ctx->ident());
+	TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
+	visit(ctx->field());
+
+	if(not Types.isErrorTy(t1) and not Types.isStructTy(t1)) {
+	  Errors.structAccessWithNonStruct(ctx);
+	}
+
+	if(Types.isStructTy(t1)) { 
+	  std::string fieldName = ctx->field()->getText();
+	  if(not Types.existStructField(t1, fieldName)) {
+		  Errors.structAccessWithNonExistentField(ctx);
+	  }
+	  else {
+		  putTypeDecor(ctx, Types.getStructFieldTy(t1, fieldName));
+	  }
+	}
+	
+	putIsLValueDecor(ctx, false);
+	
+	DEBUG_EXIT();
+	return 0;
 }
 
 antlrcpp::Any TypeCheckVisitor::visitIdent(AslParser::IdentContext *ctx) {

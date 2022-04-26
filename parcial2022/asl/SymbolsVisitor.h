@@ -66,6 +66,9 @@ public:
   antlrcpp::Any visitDeclarations(AslParser::DeclarationsContext *ctx);
   antlrcpp::Any visitVariable_decl(AslParser::Variable_declContext *ctx);
   antlrcpp::Any visitArray_decl(AslParser::Array_declContext *ctx);
+  
+  antlrcpp::Any visitStruct_decl(AslParser::Struct_declContext *ctx);
+  
   antlrcpp::Any visitType(AslParser::TypeContext *ctx);
   antlrcpp::Any visitBasic_type(AslParser::Basic_typeContext *ctx);
   antlrcpp::Any visitStatements(AslParser::StatementsContext *ctx);
@@ -87,6 +90,9 @@ public:
   antlrcpp::Any visitBoolean(AslParser::BooleanContext *ctx);
   antlrcpp::Any visitValue(AslParser::ValueContext *ctx);
   antlrcpp::Any visitIdent(AslParser::IdentContext *ctx);
+  
+  antlrcpp::Any visitStructIdent(AslParser::StructIdentContext *ctx);
+  antlrcpp::Any visitField(AslParser::FieldContext *ctx);
 
 private:
 
