@@ -85,6 +85,14 @@ antlrcpp::Any CodeGenVisitor::visitFunction(AslParser::FunctionContext *ctx) {
   Symbols.pushThisScope(sc);
   subroutine subr(ctx->ID()->getText());
   codeCounters.reset();
+  // params
+  if(ctx->func_params()){
+    std::vector<std::string>  lparams = visit(ctx->func_params());
+    for (auto & oneparam : lparams) {
+      subr.add_param(oneparam);
+    }
+  }
+  // vars
   std::vector<var> && lvars = visit(ctx->declarations());
   for (auto & onevar : lvars) {
     subr.add_var(onevar);
@@ -95,6 +103,17 @@ antlrcpp::Any CodeGenVisitor::visitFunction(AslParser::FunctionContext *ctx) {
   Symbols.popScope();
   DEBUG_EXIT();
   return subr;
+}
+
+antlrcpp::Any CodeGenVisitor::visitFunc_params(AslParser::Func_paramsContext *ctx) {
+  DEBUG_ENTER();
+  std::vector<std::string> params;
+  for (auto & id : ctx->ID()) {
+    std::string aux = id->getText();
+    params.push_back(aux);
+  }
+  DEBUG_EXIT();
+  return params;
 }
 
 antlrcpp::Any CodeGenVisitor::visitDeclarations(AslParser::DeclarationsContext *ctx) {
@@ -160,11 +179,31 @@ antlrcpp::Any CodeGenVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
   instructionList &    code1 = codAtsE.code;
   //s'ha d'adaptar per l'else. De moment poso statements(1) però faltarà
   //un condicional potser? amb l'altre statements(2)?
-  instructionList &&   code2 = visit(ctx->statements(1/*abans no hi havia l'1*/));
+  instructionList &&   code2 = visit(ctx->statements(0));
   std::string label = codeCounters.newLabelIF();
   std::string labelEndIf = "endif"+label;
   code = code1 || instruction::FJUMP(addr1, labelEndIf) ||
          code2 || instruction::LABEL(labelEndIf);
+  DEBUG_EXIT();
+  return code;
+}
+
+antlrcpp::Any CodeGenVisitor::visitWhileStmt(AslParser::WhileStmtContext *ctx) {
+  DEBUG_ENTER();
+  instructionList code;
+  CodeAttribs     && codAtsE = visit(ctx->expr());
+  std::string          addr1 = codAtsE.addr;
+  instructionList &    code1 = codAtsE.code;
+  //s'ha d'adaptar per l'else. De moment poso statements(1) però faltarà
+  //un condicional potser? amb l'altre statements(2)?
+  instructionList &&   code2 = visit(ctx->statements());
+  std::string label = codeCounters.newLabelWHILE();
+  std::string labelBeginWhile = "beginwhile"+label;
+  std::string labelEndWhile = "endwhile"+label;
+  code = instruction::LABEL(labelBeginWhile) || 
+         code1 || instruction::FJUMP(addr1, labelEndWhile) ||
+         code2 || instruction::UJUMP(labelBeginWhile) ||
+         instruction::LABEL(labelEndWhile);
   DEBUG_EXIT();
   return code;
 }
@@ -178,6 +217,20 @@ antlrcpp::Any CodeGenVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
   DEBUG_EXIT();
   return code;
 }
+
+antlrcpp::Any CodeGenVisitor::visitReturnStmt(AslParser::ReturnStmtContext *ctx) {
+  DEBUG_ENTER();
+  instructionList code;
+  if(ctx->expr()) {
+    CodeAttribs     && codAt1 = visit(ctx->expr());
+    std::string         addr1 = codAt1.addr;
+    instructionList &   code1 = codAt1.code;
+    code = code1 || instruction::LOAD("_result", addr1);
+  }
+  DEBUG_EXIT();
+  return code;
+}
+
 
 antlrcpp::Any CodeGenVisitor::visitReadStmt(AslParser::ReadStmtContext *ctx) {
   DEBUG_ENTER();
@@ -368,7 +421,11 @@ antlrcpp::Any CodeGenVisitor::visitValue(AslParser::ValueContext *ctx) {
   std::string temp = "%"+codeCounters.newTEMP();
   if(ctx->CHARVAL()) code = instruction::CHLOAD(temp, ctx->getText());
   else if(ctx->FLOATVAL()) code = instruction::FLOAD(temp, ctx->getText());
-  else code = instruction::ILOAD(temp, ctx->getText());
+  else {
+    if(ctx->getText()=="true") code = instruction::ILOAD(temp, "1");
+    else if(ctx->getText()=="false") code = instruction::ILOAD(temp, "0");
+    else code = instruction::ILOAD(temp, ctx->getText());
+  }
   CodeAttribs codAts(temp, "", code);
   DEBUG_EXIT();
   return codAts;
