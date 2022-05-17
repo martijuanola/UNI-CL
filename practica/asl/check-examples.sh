@@ -36,7 +36,7 @@ function check_genc_example() {
 }
 
 ########### check 'jpbasic_chkt' examples
-<< 'MULTILINE-COMMENT'
+
 echo "======================================================="
 echo "=== BEGIN examples/jpbasic_chkt typecheck ============="
 for f in ../examples/jpbasic_chkt_*.asl; do
@@ -47,7 +47,6 @@ for f in ../examples/jpbasic_chkt_*.asl; do
 done
 echo "=== END examples/jpbasic_chkt typecheck ==============="
 echo "======================================================="
-MULTILINE-COMMENT
 
 ########### check all 'jp_chkt' examples
 echo ""
@@ -62,7 +61,6 @@ done
 echo "=== END examples/jp_chkt_* typecheck =================="
 echo "======================================================="
 
-<< 'MULTILINE-COMMENT'
 ########### check all 'jpbasic_genc' examples
 echo ""
 echo "======================================================="
@@ -98,4 +96,3 @@ for f in ../examples/jp_genc_*.asl; do
 done
 echo "=== END examples/jp_genc_* codegen ===================="
 echo "======================================================="
-MULTILINE-COMMENT
