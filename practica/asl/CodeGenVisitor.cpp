@@ -225,10 +225,9 @@ antlrcpp::Any CodeGenVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
   CodeAttribs && codAts = visit(ctx->ident());
   instructionList & code = codAts.code;
   
-  //COMPROVAR SI TÉ RETURN TYPE(ENCARA QUE S'IGNORI CAL GUARDAR ESPAI)
-  code = code || instruction::PUSH();
-  
   TypesMgr::TypeId t = getTypeDecor(ctx->ident());
+  if(not Types.isVoidTy(t)) code = code || instruction::PUSH();
+  
   unsigned int i = 0;
   for( auto expr : ctx->expr()){
     CodeAttribs && codAts2 = visit(expr);
@@ -252,8 +251,7 @@ antlrcpp::Any CodeGenVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
     code = code || instruction::POP();
   }
   
-  //COMPROVAR SI TÉ RETURN TYPE(ENCARA QUE S'IGNORI CAL GUARDAR ESPAI)
-  code = code || instruction::POP();
+  if(not Types.isVoidTy(t)) code = code || instruction::POP();
   
   DEBUG_EXIT();
   return code;
