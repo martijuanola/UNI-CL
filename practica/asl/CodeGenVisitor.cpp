@@ -241,6 +241,11 @@ antlrcpp::Any CodeGenVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
       code = code || instruction::FLOAT(temp,addr);
       addr = temp;
     }
+    else if(Types.isArrayTy(p)){
+      std::string temp = "%"+codeCounters.newTEMP();
+      code = code || instruction::ALOAD(temp,addr);
+      addr = temp;
+    }
 
     code = code || instruction::PUSH(addr);
     ++i;
@@ -533,6 +538,11 @@ antlrcpp::Any CodeGenVisitor::visitFuncCall(AslParser::FuncCallContext *ctx) {
     if(Types.isFloatTy(p) and not Types.isFloatTy(e)){
       std::string temp = "%"+codeCounters.newTEMP();
       code = code || instruction::FLOAT(temp,addr);
+      addr = temp;
+    }
+    else if(Types.isArrayTy(p)){
+      std::string temp = "%"+codeCounters.newTEMP();
+      code = code || instruction::ALOAD(temp,addr);
       addr = temp;
     }
 
