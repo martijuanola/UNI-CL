@@ -11,14 +11,14 @@ function fact
      %1 = 1
      f = %1
   label beginwhile1 :
-     %2 = 1
-     %3 = %2 < n
-     ifFalse %3 goto endwhile1
-     %4 = f * n
-     f = %4
-     %5 = 1
-     %6 = n - %5
-     n = %6
+     %3 = 1
+     %4 = %3 < n
+     ifFalse %4 goto endwhile1
+     %5 = f * n
+     f = %5
+     %7 = 1
+     %8 = n - %7
+     n = %8
      goto beginwhile1
   label endwhile1 :
      _result = f
@@ -35,31 +35,31 @@ function main
 
      %1 = 0
      i = %1
-     %2 = 1
-     end = %2
-     readi %3
-     max = %3
-     %4 = i <= max
-     ifFalse %4 goto endif1
-     %5 = 0
-     end = %5
+     %3 = 1
+     end = %3
+     readi %5
+     max = %5
+     %6 = i <= max
+     ifFalse %6 goto endif1
+     %7 = 0
+     end = %7
   label endif1 :
   label beginwhile1 :
-     %6 = not end
-     ifFalse %6 goto endwhile1
+     %9 = not end
+     ifFalse %9 goto endwhile1
      writei i
      writes "!="
      pushparam 
      pushparam i
      call fact
      popparam 
-     popparam %7
-     writei %7
+     popparam %10
+     writei %10
      writes "\n"
-     %8 = i == max
-     ifFalse %8 goto endif2
-     %9 = 1
-     end = %9
+     %11 = i == max
+     ifFalse %11 goto endif2
+     %12 = 1
+     end = %12
   label endif2 :
      goto beginwhile1
   label endwhile1 :

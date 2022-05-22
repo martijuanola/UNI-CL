@@ -29,9 +29,6 @@ func main()
   var q :float
   q = -1;
   q = fz(3+4, fz(4444, q+3));
-  write "\n";
-  write q;
-  write "\n";
   write q+3.7+4;
   write "\n";
 endfunc
