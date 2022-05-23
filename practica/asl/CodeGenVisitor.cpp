@@ -185,17 +185,36 @@ antlrcpp::Any CodeGenVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx)
 
 antlrcpp::Any CodeGenVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
   DEBUG_ENTER();
-  instructionList code;
+  instructionList code; //VALOR RETURN
   CodeAttribs     && codAtsE = visit(ctx->expr());
   std::string          addr1 = codAtsE.addr;
-  instructionList &    code1 = codAtsE.code;
-  //s'ha d'adaptar per l'else. De moment poso statements(1) però faltarà
-  //un condicional potser? amb l'altre statements(2)?
-  instructionList &&   code2 = visit(ctx->statements(0));
+  instructionList &    codeEXPR = codAtsE.code;
+  
+  //statments i etiqueta de if
+  instructionList &&   codeSTMS1 = visit(ctx->statements(0));
   std::string label = codeCounters.newLabelIF();
   std::string labelEndIf = "endif"+label;
-  code = code1 || instruction::FJUMP(addr1, labelEndIf) ||
-         code2 || instruction::LABEL(labelEndIf);
+  
+  if(ctx->statements().size() > 1) {
+	  //statements i label de else si n'hi ha
+	  instructionList &&   codeSTMS2 = visit(ctx->statements(1));
+	  std::string labelElse = "else"+label;
+	  code = 
+	       codeEXPR
+		|| instruction::FJUMP(addr1, labelElse)
+		|| codeSTMS1
+		|| instruction::UJUMP(labelEndIf)
+		|| instruction::LABEL(labelElse)
+		|| codeSTMS2
+		|| instruction::LABEL(labelEndIf);
+  }
+  else {//NO HI HA ELSE
+	  code =
+		   codeEXPR
+		|| instruction::FJUMP(addr1, labelEndIf)
+		|| codeSTMS1
+		|| instruction::LABEL(labelEndIf);
+   }
   DEBUG_EXIT();
   return code;
 }
@@ -206,8 +225,6 @@ antlrcpp::Any CodeGenVisitor::visitWhileStmt(AslParser::WhileStmtContext *ctx) {
   CodeAttribs     && codAtsE = visit(ctx->expr());
   std::string          addr1 = codAtsE.addr;
   instructionList &    code1 = codAtsE.code;
-  //s'ha d'adaptar per l'else. De moment poso statements(1) però faltarà
-  //un condicional potser? amb l'altre statements(2)?
   instructionList &&   code2 = visit(ctx->statements());
   std::string label = codeCounters.newLabelWHILE();
   std::string labelBeginWhile = "beginwhile"+label;
@@ -409,15 +426,15 @@ antlrcpp::Any CodeGenVisitor::visitArithmetic(AslParser::ArithmeticContext *ctx)
       code = code || instruction::FLOAT(tempFloat, addr2);
       addr2 = tempFloat;
     }
-    
+
     if (ctx->MUL())
       code = code || instruction::FMUL(temp, addr1, addr2);
     else if (ctx->DIV())
       code = code || instruction::FDIV(temp, addr1, addr2);
     else if (ctx->MOD()){
-      std::cout << "mod case" << std::endl;
+      std::cout << "mod case for floats!!!'??" << std::endl;
       exit(0);
-    }else if (ctx->PLUS())
+    } else if (ctx->PLUS())
       code = code || instruction::FADD(temp, addr1, addr2);
     else if (ctx->MINUS())
       code = code || instruction::FSUB(temp, addr1, addr2);
@@ -428,9 +445,14 @@ antlrcpp::Any CodeGenVisitor::visitArithmetic(AslParser::ArithmeticContext *ctx)
     else if (ctx->DIV())
       code = code || instruction::DIV(temp, addr1, addr2);
     else if (ctx->MOD()){
-      std::cout << "mod case" << std::endl;
-      exit(0);
-    }else if (ctx->PLUS())
+      std::string tempDIV = "%"+codeCounters.newTEMP();
+      std::string tempMULT = "%"+codeCounters.newTEMP();
+      code = code
+		|| instruction::DIV(tempDIV, addr1, addr2)
+		|| instruction::MUL(tempMULT, tempDIV, addr2)
+		|| instruction::SUB(temp, addr1, tempMULT);
+    }
+    else if (ctx->PLUS())
       code = code || instruction::ADD(temp, addr1, addr2);
     else if (ctx->MINUS())
       code = code || instruction::SUB(temp, addr1, addr2);
@@ -523,7 +545,7 @@ antlrcpp::Any CodeGenVisitor::visitValue(AslParser::ValueContext *ctx) {
   DEBUG_ENTER();
   instructionList code;
   std::string temp = "%"+codeCounters.newTEMP();
-  if(ctx->CHARVAL()) code = instruction::CHLOAD(temp, ctx->getText());
+  if(ctx->CHARVAL()) code = instruction::CHLOAD(temp, ctx->getText().substr(1,ctx->getText().size()-2));
   else if(ctx->FLOATVAL()) code = instruction::FLOAD(temp, ctx->getText());
   else {
     if(ctx->getText()=="true") code = instruction::ILOAD(temp, "1");

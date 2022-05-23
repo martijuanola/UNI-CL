@@ -1,69 +1,68 @@
-function fact
-  params
-    _result
-    n
-  endparams
-
-  vars
-    f 1
-  endvars
-
-     %1 = 1
-     f = %1
-  label beginwhile1 :
-     %3 = 1
-     %4 = %3 < n
-     ifFalse %4 goto endwhile1
-     %5 = f * n
-     f = %5
-     %7 = 1
-     %8 = n - %7
-     n = %8
-     goto beginwhile1
-  label endwhile1 :
-     _result = f
-     return
-endfunction
-
 function main
   vars
-    max 1
-    i 1
-    f 1
-    end 1
+    a 1
+    b 1
+    c 1
   endvars
 
-     %1 = 0
-     i = %1
-     %3 = 1
-     end = %3
-     readi %5
-     max = %5
-     %6 = i <= max
-     ifFalse %6 goto endif1
-     %7 = 0
-     end = %7
-  label endif1 :
-  label beginwhile1 :
-     %9 = not end
-     ifFalse %9 goto endwhile1
-     writei i
-     writes "!="
-     pushparam 
-     pushparam i
-     call fact
-     popparam 
-     popparam %10
-     writei %10
-     writes "\n"
-     %11 = i == max
-     ifFalse %11 goto endif2
-     %12 = 1
-     end = %12
-  label endif2 :
-     goto beginwhile1
-  label endwhile1 :
-     return
+   %1 = 13
+   a = %1
+   %3 = 4
+   b = %3
+   %6 = a / b
+   %7 = %6 * b
+   %5 = a - %7
+   c = %5
+   writei c
+   %9 = '.'
+   writec %9
+   %10 = '\n'
+   writec %10
+   %11 = - a
+   %13 = %11 / b
+   %14 = %13 * b
+   %12 = %11 - %14
+   c = %12
+   writei c
+   %16 = '.'
+   writec %16
+   %17 = '\n'
+   writec %17
+   %18 = - b
+   %20 = a / %18
+   %21 = %20 * %18
+   %19 = a - %21
+   c = %19
+   writei c
+   %23 = '.'
+   writec %23
+   %24 = '\n'
+   writec %24
+   %25 = 3
+   %26 = a + %25
+   %28 = %26 / b
+   %29 = %28 * b
+   %27 = %26 - %29
+   c = %27
+   writei c
+   %31 = '.'
+   writec %31
+   %32 = '\n'
+   writec %32
+   %33 = - a
+   %34 = 3
+   %35 = %33 - %34
+   %36 = - b
+   %38 = %35 / %36
+   %39 = %38 * %36
+   %37 = %35 - %39
+   c = %37
+   writei c
+   %41 = '.'
+   writec %41
+   %42 = '\n'
+   writec %42
+   return
 endfunction
 
 
