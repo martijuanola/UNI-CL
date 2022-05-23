@@ -39,14 +39,18 @@ export LD_LIBRARY_PATH=/usr
 
 ## To execute:
 
-#### Individual Tests:
+#### Basic Individual Tests:
+
 ```shell
 ./asl ../jps/jp_chkt_01.asl
 ```
 
+#### TVM Tests:
 
-
-
+```shell
+./asl ../examples/jp_genc_01.asl > code.t
+../tvm/tvm code.t < ../examples/jp_genc_01.in
+```
 
 
 

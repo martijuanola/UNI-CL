@@ -225,8 +225,9 @@ antlrcpp::Any CodeGenVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
   CodeAttribs && codAts = visit(ctx->ident());
   instructionList & code = codAts.code;
   
+  //Es guarda l'espai de return encara que no necessariament es fassi servir(si no és void)
   TypesMgr::TypeId t = getTypeDecor(ctx->ident());
-  if(not Types.isVoidTy(t)) code = code || instruction::PUSH();
+  if(not Types.isVoidFunction(t)) code = code || instruction::PUSH();
   
   unsigned int i = 0;
   for( auto expr : ctx->expr()){
@@ -250,13 +251,15 @@ antlrcpp::Any CodeGenVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
     code = code || instruction::PUSH(addr);
     ++i;
   }
+  
   std::string name = ctx->ident()->getText();
   code = code || instruction::CALL(name); 
   for( long unsigned int i = 0; i<ctx->expr().size(); ++i){
     code = code || instruction::POP();
   }
   
-  if(not Types.isVoidTy(t)) code = code || instruction::POP();
+  //s'allibera l'espai del return si hi era
+  if(not Types.isVoidFunction(t)) code = code || instruction::POP();
   
   DEBUG_EXIT();
   return code;
@@ -333,9 +336,20 @@ antlrcpp::Any CodeGenVisitor::visitLeft_expr(AslParser::Left_exprContext *ctx) {
   //s'ha de retornar code + addres(array) + offset(nombre de posicions)
   CodeAttribs && codAts = visit(ctx->ident()); 
   instructionList &   code = codAts.code;
-  if(ctx->expr()){
+  if(ctx->expr()){//arrays
     CodeAttribs && codAts2 = visit(ctx->expr());
     code = code || codAts2.code;
+    
+    //mirar si és parametre per referènia
+    //Suposaré que si l'ident és paràmetre vol dir que és un punter al vector original
+    if(Symbols.isParameterClass(ctx->ident()->getText())) {
+		//variable amb adreça de l'array
+		std::string temp = "%"+codeCounters.newTEMP();
+		code = code
+				|| instruction::LOAD(temp, codAts.addr);
+		codAts.addr = temp;
+	}
+    
     codAts.offs = codAts2.addr;
   }
   DEBUG_EXIT();
@@ -566,10 +580,28 @@ antlrcpp::Any CodeGenVisitor::visitExprIdent(AslParser::ExprIdentContext *ctx) {
   CodeAttribs && codAts = visit(ctx->ident());
   instructionList & code = codAts.code;
   if(ctx->expr()){
+	// avaluació de l'expressió
     CodeAttribs && codAts2 = visit(ctx->expr());
-    std::string temp = "%"+codeCounters.newTEMP();
-    code = code || codAts2.code || instruction::LOADX(temp, codAts.addr, codAts2.addr);
-    codAts.addr = temp;
+    code = code || codAts2.code;
+    
+    //mirar si és parametre per referènia
+    //Suposaré que si l'ident és paràmetre vol dir que és un punter al vector original
+    if(Symbols.isParameterClass(ctx->ident()->getText())) {
+		//variable amb adreça de l'array
+		std::string temp1 = "%"+codeCounters.newTEMP();
+		std::string temp2 = "%"+codeCounters.newTEMP();
+		code = code
+				|| instruction::LOAD(temp1, codAts.addr)
+				|| instruction::LOADX(temp2, temp1, codAts2.addr);
+		codAts.addr = temp2;
+	}
+	else {
+		//array normal
+		std::string temp = "%"+codeCounters.newTEMP();
+		code = code || instruction::LOADX(temp, codAts.addr, codAts2.addr);
+		codAts.addr = temp;
+	}
+    
   }
   DEBUG_EXIT();
   return codAts;
