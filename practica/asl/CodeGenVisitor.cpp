@@ -308,8 +308,8 @@ antlrcpp::Any CodeGenVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
       std::string temp = "%"+codeCounters.newTEMP();
       code = code || instruction::FLOAT(temp,addr);
       addr = temp;
-    }
-    else if(Types.isArrayTy(p)){
+    }//afegit pel test 14
+    else if(Types.isArrayTy(p) and not Symbols.isParameterClass(ctx->expr(i)->getText())){
       std::string temp = "%"+codeCounters.newTEMP();
       code = code || instruction::ALOAD(temp,addr);
       addr = temp;
@@ -625,8 +625,8 @@ antlrcpp::Any CodeGenVisitor::visitFuncCall(AslParser::FuncCallContext *ctx) {
       std::string temp = "%"+codeCounters.newTEMP();
       code = code || instruction::FLOAT(temp,addr);
       addr = temp;
-    }
-    else if(Types.isArrayTy(p)){
+    }//afegit pel test 14
+    else if(Types.isArrayTy(p) and not Symbols.isParameterClass(ctx->expr(i)->getText())){
       std::string temp = "%"+codeCounters.newTEMP();
       code = code || instruction::ALOAD(temp,addr);
       addr = temp;
