@@ -170,15 +170,65 @@ antlrcpp::Any CodeGenVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx)
   
   TypesMgr::TypeId t1 = getTypeDecor(ctx->left_expr());
   TypesMgr::TypeId t2 = getTypeDecor(ctx->expr());
-  std::string temp = "%"+codeCounters.newTEMP();
-  if(Types.isFloatTy(t1) and Types.isIntegerTy(t2)) {
-	code = code || instruction::FLOAT(temp,addr2);
+  
+  /**
+   * TempI = 0
+   * TempL = length
+   * TempINCR
+   * 
+   * LABELwhile1
+   * TempComparar = ...
+   * FJUMP(TempI < TempL) endwhile1
+   * 
+   * tempV = B[tempI]
+   * A[tempI] = tempV
+   * TempI += TempINCR
+   * 
+   * JUMP whil1
+   * LABEL endWHILE1
+   * */
+  
+  //Cas d'assignació d'arrays
+  if(Types.isArrayTy(t1) and Types.isArrayTy(t2)) {
+	  //TEMPORALS
+	  std::string tempI = "%"+codeCounters.newTEMP();	//Variable del bucle
+	  std::string tempL = "%"+codeCounters.newTEMP();	//Mida Arrays
+	  std::string tempV = "%"+codeCounters.newTEMP();	//Auxiliar per valor
+	  std::string tempINCR = "%"+codeCounters.newTEMP();//Increment(+1)
+	  std::string tempCOMP = "%"+codeCounters.newTEMP();//Resultat comparació
+	  
+	  //LABELS
+	  std::string label = codeCounters.newLabelWHILE();
+	  std::string labelWhile = "while"+label;
+	  std::string labelEndWhile = "endwhile"+label;
+	  
+	  code = code
+		|| instruction::ILOAD(tempI,"0")
+		|| instruction::ILOAD(tempL,std::to_string(Types.getArraySize(t1)))
+		|| instruction::ILOAD(tempINCR,"1")
+		
+		|| instruction::LABEL(labelWhile)
+		|| instruction::LT(tempCOMP,tempI,tempL)
+		|| instruction::FJUMP(tempCOMP, labelEndWhile)
+		
+		|| instruction::LOADX(tempV,addr2,tempI)
+		|| instruction::XLOAD(addr1,tempI,tempV)
+		|| instruction::ADD(tempI,tempI,tempINCR)
+		
+		|| instruction::UJUMP(labelWhile)
+		|| instruction::LABEL(labelEndWhile);
   }
-  else temp = addr2; //quan no s'ha de fer el canvi
+  else {
   
-  if(offs1 != "") code = code || instruction::XLOAD(addr1, offs1, temp);
-  else code = code || instruction::LOAD(addr1, temp);
-  
+	  std::string temp = "%"+codeCounters.newTEMP();
+	  if(Types.isFloatTy(t1) and Types.isIntegerTy(t2)) {
+		code = code || instruction::FLOAT(temp,addr2);
+	  }
+	  else temp = addr2; //quan no s'ha de fer el canvi
+	  
+	  if(offs1 != "") code = code || instruction::XLOAD(addr1, offs1, temp);
+	  else code = code || instruction::LOAD(addr1, temp);
+  }  
   DEBUG_EXIT();
   return code;
 }
@@ -353,22 +403,13 @@ antlrcpp::Any CodeGenVisitor::visitLeft_expr(AslParser::Left_exprContext *ctx) {
   //s'ha de retornar code + addres(array) + offset(nombre de posicions)
   CodeAttribs && codAts = visit(ctx->ident()); 
   instructionList &   code = codAts.code;
+  
   if(ctx->expr()){//arrays
     CodeAttribs && codAts2 = visit(ctx->expr());
     code = code || codAts2.code;
-    
-    //mirar si és parametre per referènia
-    //Suposaré que si l'ident és paràmetre vol dir que és un punter al vector original
-    if(Symbols.isParameterClass(ctx->ident()->getText())) {
-		//variable amb adreça de l'array
-		std::string temp = "%"+codeCounters.newTEMP();
-		code = code
-				|| instruction::LOAD(temp, codAts.addr);
-		codAts.addr = temp;
-	}
-    
     codAts.offs = codAts2.addr;
   }
+  
   DEBUG_EXIT();
   return codAts;
 }
@@ -380,23 +421,32 @@ antlrcpp::Any CodeGenVisitor::visitParenthesis(AslParser::ParenthesisContext *ct
   return codAts;
 }
 
+
+//Revisar!!!
 antlrcpp::Any CodeGenVisitor::visitUnary(AslParser::UnaryContext *ctx) {  
   DEBUG_ENTER();
   CodeAttribs     && codAt = visit(ctx->expr());
   std::string         addr = codAt.addr;
   instructionList &   code = codAt.code;
-  std::string temp = "%"+codeCounters.newTEMP();
-  if (ctx->MINUS()){
-    TypesMgr::TypeId t = getTypeDecor(ctx->expr());
-    if (Types.isFloatTy(t))
-      code = code || instruction::FNEG(temp, addr);
-    else 
-      code = code || instruction::NEG(temp, addr);
-  }else if (ctx->NOT())
-    code = code || instruction::NOT(temp, addr);
-  CodeAttribs codAts(temp, "", code);
+  
+  if(ctx->PLUS()) return codAt;
+  else {
+	  std::string temp = "%"+codeCounters.newTEMP();
+	  if (ctx->MINUS()){  
+		TypesMgr::TypeId t = getTypeDecor(ctx->expr());
+		if (Types.isFloatTy(t))
+		  code = code || instruction::FNEG(temp, addr);
+		else 
+		  code = code || instruction::NEG(temp, addr);
+	  }
+	  else if (ctx->NOT()) {
+		code = code || instruction::NOT(temp, addr);
+	  }
+	  CodeAttribs codAts(temp, "", code);
+	  return codAts;
+  }
   DEBUG_EXIT();
-  return codAts;
+  
 }
 
 antlrcpp::Any CodeGenVisitor::visitArithmetic(AslParser::ArithmeticContext *ctx) {  
@@ -601,28 +651,15 @@ antlrcpp::Any CodeGenVisitor::visitExprIdent(AslParser::ExprIdentContext *ctx) {
   DEBUG_ENTER();
   CodeAttribs && codAts = visit(ctx->ident());
   instructionList & code = codAts.code;
+  
   if(ctx->expr()){
 	// avaluació de l'expressió
     CodeAttribs && codAts2 = visit(ctx->expr());
     code = code || codAts2.code;
     
-    //mirar si és parametre per referènia
-    //Suposaré que si l'ident és paràmetre vol dir que és un punter al vector original
-    if(Symbols.isParameterClass(ctx->ident()->getText())) {
-		//variable amb adreça de l'array
-		std::string temp1 = "%"+codeCounters.newTEMP();
-		std::string temp2 = "%"+codeCounters.newTEMP();
-		code = code
-				|| instruction::LOAD(temp1, codAts.addr)
-				|| instruction::LOADX(temp2, temp1, codAts2.addr);
-		codAts.addr = temp2;
-	}
-	else {
-		//array normal
-		std::string temp = "%"+codeCounters.newTEMP();
-		code = code || instruction::LOADX(temp, codAts.addr, codAts2.addr);
-		codAts.addr = temp;
-	}
+	std::string temp = "%"+codeCounters.newTEMP();
+	code = code || instruction::LOADX(temp, codAts.addr, codAts2.addr);
+	codAts.addr = temp;
     
   }
   DEBUG_EXIT();
@@ -632,6 +669,15 @@ antlrcpp::Any CodeGenVisitor::visitExprIdent(AslParser::ExprIdentContext *ctx) {
 antlrcpp::Any CodeGenVisitor::visitIdent(AslParser::IdentContext *ctx) {
   DEBUG_ENTER();
   CodeAttribs codAts(ctx->ID()->getText(), "", instructionList());
+  instructionList & code = codAts.code;
+  
+  TypesMgr::TypeId t = getTypeDecor(ctx);
+  if(Types.isArrayTy(t) and Symbols.isParameterClass(ctx->ID()->getText())) {
+	  std::string temp = "%"+codeCounters.newTEMP();
+	  code = code || instruction::LOAD(temp, codAts.addr);
+	  codAts.addr = temp;
+  }
+  
   DEBUG_EXIT();
   return codAts;
 }
