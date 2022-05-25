@@ -341,6 +341,7 @@ antlrcpp::Any CodeGenVisitor::visitReturnStmt(AslParser::ReturnStmtContext *ctx)
     instructionList &   code1 = codAt1.code;
     code = code1 || instruction::LOAD("_result", addr1);
   }
+  code = code || instruction::RETURN();
   DEBUG_EXIT();
   return code;
 }
