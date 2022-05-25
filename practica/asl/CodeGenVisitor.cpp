@@ -101,7 +101,9 @@ antlrcpp::Any CodeGenVisitor::visitFunction(AslParser::FunctionContext *ctx) {
     subr.add_var(onevar);
   }
   instructionList && code = visit(ctx->statements());
-  code = code || instruction(instruction::RETURN());
+  
+  if(not ctx->type()) code = code || instruction(instruction::RETURN());
+
   subr.set_instructions(code);
   Symbols.popScope();
   DEBUG_EXIT();
