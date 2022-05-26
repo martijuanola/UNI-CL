@@ -29,8 +29,7 @@ array_decl
         : ARRAY '[' INTVAL ']'  'of' basic_type
         ;
 
-type
-        : basic_type | array_decl
+type    : basic_type | array_decl
         ;       
 
 basic_type    
@@ -43,34 +42,34 @@ statements
 
 // The different types of instructions
 statement
-        : left_expr ASSIGN expr ';'           				# assignStmt
-        | IF expr THEN statements (ELSE statements)? ENDIF              # ifStmt
-        | WHILE expr 'do' statements ENDWHILE 				# whileStmt
-        | ident '(' (expr (',' expr)*)? ')' ';'                         # procCall
-        | RETURN expr? ';'                    				# returnStmt
-        | READ left_expr ';'                  				# readStmt
-        | WRITE expr ';'                      				# writeExpr
-        | WRITE STRING ';'                    				# writeString
+        : left_expr ASSIGN expr ';'                             # assignStmt
+        | IF expr THEN statements (ELSE statements)? ENDIF      # ifStmt
+        | WHILE expr 'do' statements ENDWHILE                   # whileStmt
+        | ident '(' (expr (',' expr)*)? ')' ';'                 # procCall
+        | RETURN expr? ';'                                      # returnStmt
+        | READ left_expr ';'                                    # readStmt
+        | WRITE expr ';'                                        # writeExpr
+        | WRITE STRING ';'                                      # writeString
         ;
 
 // Grammar for left expressions (l-values in C++)
 left_expr
-        : ident '[' expr ']' 			
-        | ident							
+        : ident '[' expr ']'
+        | ident
         ;
 
 // Grammar for expressions with boolean, relational and aritmetic operators
 expr    : '(' expr ')'                          # parenthesis
-        | op=(MINUS|NOT|PLUS) expr            	# unary
-        | expr op=(MUL|DIV|MOD) expr          	# arithmetic
-        | expr op=(PLUS|MINUS) expr           	# arithmetic
+        | op=(MINUS|NOT|PLUS) expr              # unary
+        | expr op=(MUL|DIV|MOD) expr            # arithmetic
+        | expr op=(PLUS|MINUS) expr             # arithmetic
         | expr op=(EQUAL|NEQ|LT|GT|LE|GE) expr  # relational
-        | expr op=AND expr                   	# boolean
-        | expr op=OR expr                    	# boolean
-        | (INTVAL|FLOATVAL|CHARVAL|BOOLVAL)   	# value
+        | expr op=AND expr                      # boolean
+        | expr op=OR expr                       # boolean
+        | (INTVAL|FLOATVAL|CHARVAL|BOOLVAL)     # value
         | ident '(' (expr (',' expr)*)? ')'     # funcCall
-        | ident '[' expr ']'			# exprIdent
-        | ident                               	# exprIdent
+        | ident '[' expr ']'                    # exprIdent
+        | ident                                 # exprIdent
         ;
 
 // Identifiers
@@ -100,7 +99,7 @@ PLUS      : '+' ;
 MINUS     : '-' ;
 MUL       : '*';
 DIV       : '/';
-MOD		  : '%';
+MOD       : '%';
 
 // ----- Types -----
 VAR       : 'var';
