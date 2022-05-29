@@ -1,0 +1,11 @@
+Line 24:8 error: Identifier 'i' is undeclared.
+Line 25:14 error: Operator '+' with incompatible types.
+Line 27:5 error: Instruction 'map' with incompatible arguments.
+Line 28:5 error: Instruction 'map' with incompatible arguments.
+Line 32:2 error: Instruction 'map' with incompatible arguments.
+Line 33:2 error: Instruction 'map' with incompatible arguments.
+Line 35:14 error: Operator 'or' with incompatible types.
+Line 36:5 error: Instruction 'map' with incompatible arguments.
+Line 37:5 error: Instruction 'map' with incompatible arguments.
+Line 40:2 error: Instruction 'map' with incompatible arguments.
+Line 41:2 error: Instruction 'map' with incompatible arguments.

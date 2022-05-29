@@ -1,0 +1,9 @@
+Line 20:4 error: Assignment with incompatible types.
+Line 20:7 error: Operator '**' with incompatible types.
+Line 21:4 error: Assignment with incompatible types.
+Line 21:11 error: Operator '**' with incompatible types.
+Line 24:13 error: Operator '**' with incompatible types.
+Line 25:7 error: Assignment with incompatible types.
+Line 25:10 error: Operator '**' with incompatible types.
+Line 28:8 error: The number of parameters in the call to 'f' does not match.
+Line 28:11 error: Operator '**' with incompatible types.
