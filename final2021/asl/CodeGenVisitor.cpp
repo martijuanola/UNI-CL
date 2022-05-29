@@ -424,19 +424,73 @@ antlrcpp::Any CodeGenVisitor::visitMap(AslParser::MapContext *ctx) {
   std::string     &   addr1 = codAt1.addr;
   instructionList &   code1 = codAt1.code;
   TypesMgr::TypeId t1 = getTypeDecor(ctx->ident(0));
+  TypesMgr::TypeId ta1 = Types.getArrayElemType(t1);
   
   CodeAttribs     && codAt2 = visit(ctx->ident(1));
-  std::string     &   addr2 = codAt1.addr;
-  instructionList &   code2 = codAt1.code;
+  std::string     &   addr2 = codAt2.addr;
+  instructionList &   code2 = codAt2.code;
   TypesMgr::TypeId t2 = getTypeDecor(ctx->ident(1));
+  TypesMgr::TypeId ta2 = Types.getArrayElemType(t2);
   
   CodeAttribs     && codAt3 = visit(ctx->ident(2));
-  std::string     &   addr3 = codAt1.addr;
   instructionList &   code3 = codAt1.code;
   TypesMgr::TypeId t3 = getTypeDecor(ctx->ident(2));
-  std::string funcName = ctx->ident(3)->getText();
+  TypesMgr::TypeId tp = Types.getParameterType(t3,0);
+  TypesMgr::TypeId tr = Types.getFuncReturnType(t3);
+  
+  std::string funcName = ctx->ident(2)->getText();
+  std::string length = std::to_string(Types.getArraySize(t1));
+  
+  std::string tempIncr = "%"+codeCounters.newTEMP();
+  std::string tempI = "%"+codeCounters.newTEMP();
+  std::string tempC = "%"+codeCounters.newTEMP();
+  std::string tempL = "%"+codeCounters.newTEMP();
+  std::string tempIN = "%"+codeCounters.newTEMP();
+  std::string tempOUT = "%"+codeCounters.newTEMP();
+  
+  std::string tempAux1 = "%"+codeCounters.newTEMP();
+  std::string tempAux2 = "%"+codeCounters.newTEMP();
+  
+  std::string label = codeCounters.newLabelWHILE();
+  std::string labelBeginMap = "beginMap"+label;
+  std::string labelEndMap = "endMap"+label;
   
   
+  code = code1 || code2 || code3
+    || instruction::ILOAD(tempIncr,"1")
+    || instruction::ILOAD(tempI,"0")
+    || instruction::ILOAD(tempL,length)
+    
+    || instruction::LABEL(labelBeginMap)
+    || instruction::LT(tempC,tempI,tempL)
+    || instruction::FJUMP(tempC,labelEndMap)
+    
+    || instruction::PUSH()
+    || instruction::LOADX(tempIN,addr1,tempI);
+    
+  if(Types.isIntegerTy(ta1) and Types.isFloatTy(tp)) {
+    code = code || instruction::FLOAT(tempAux1,tempIN);
+  }
+  else tempAux1 = tempIN;
+    
+  code = code
+    || instruction::PUSH(tempAux1)
+    || instruction::CALL(funcName)
+    || instruction::POP()
+    || instruction::POP(tempOUT);
+    
+  if(Types.isIntegerTy(tr) and Types.isFloatTy(ta2)) {
+    code = code || instruction::FLOAT(tempAux2,tempOUT);
+  }
+  else tempAux2 = tempOUT;
+  
+  code = code
+    || instruction::XLOAD(addr2,tempI,tempAux2)
+    
+    || instruction::ADD(tempI,tempI,tempIncr)
+    || instruction::UJUMP(labelBeginMap)
+    || instruction::LABEL(labelEndMap)
+    ;
   
   DEBUG_EXIT();
   return code;

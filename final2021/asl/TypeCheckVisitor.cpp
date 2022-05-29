@@ -299,13 +299,17 @@ antlrcpp::Any TypeCheckVisitor::visitMap(AslParser::MapContext *ctx) {
           TypesMgr::TypeId ta1 = Types.getArrayElemType(t1);
           TypesMgr::TypeId tf1 = Types.getParameterType(t3,0);
           if((not Types.isErrorTy(ta1)) and (not Types.isErrorTy(tf1)) and (not Types.equalTypes(ta1,tf1))) {
-            Errors.incompatibleMapOperands(ctx);
+            if(not (Types.isIntegerTy(ta1) and Types.isFloatTy(tf1))) {
+              Errors.incompatibleMapOperands(ctx);
+            }
           }
           else {
             TypesMgr::TypeId ta2 = Types.getArrayElemType(t2);
           TypesMgr::TypeId tr = Types.getFuncReturnType(t3);
           if((not Types.isErrorTy(ta2)) and (not Types.isErrorTy(tr)) and (not Types.equalTypes(ta2,tr))) {
-            Errors.incompatibleMapOperands(ctx);
+            if(not (Types.isIntegerTy(ta2) and Types.isFloatTy(tr))) {
+              Errors.incompatibleMapOperands(ctx);
+            }
           }
           }
         }
