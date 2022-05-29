@@ -416,6 +416,32 @@ antlrcpp::Any CodeGenVisitor::visitWriteString(AslParser::WriteStringContext *ct
   return code;
 }
 
+antlrcpp::Any CodeGenVisitor::visitMap(AslParser::MapContext *ctx) {
+  DEBUG_ENTER();
+  instructionList code;
+  
+  CodeAttribs     && codAt1 = visit(ctx->ident(0));
+  std::string     &   addr1 = codAt1.addr;
+  instructionList &   code1 = codAt1.code;
+  TypesMgr::TypeId t1 = getTypeDecor(ctx->ident(0));
+  
+  CodeAttribs     && codAt2 = visit(ctx->ident(1));
+  std::string     &   addr2 = codAt1.addr;
+  instructionList &   code2 = codAt1.code;
+  TypesMgr::TypeId t2 = getTypeDecor(ctx->ident(1));
+  
+  CodeAttribs     && codAt3 = visit(ctx->ident(2));
+  std::string     &   addr3 = codAt1.addr;
+  instructionList &   code3 = codAt1.code;
+  TypesMgr::TypeId t3 = getTypeDecor(ctx->ident(2));
+  std::string funcName = ctx->ident(3)->getText();
+  
+  
+  
+  DEBUG_EXIT();
+  return code;
+}
+
 
 /* ---------- LEFT EXPRESSION ---------- */
 

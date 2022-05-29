@@ -234,6 +234,13 @@ antlrcpp::Any SymbolsVisitor::visitWriteExpr(AslParser::WriteExprContext *ctx) {
   return r;
 }
 
+antlrcpp::Any SymbolsVisitor::visitMap(AslParser::MapContext *ctx) {
+  DEBUG_ENTER();
+  antlrcpp::Any r = visitChildren(ctx);
+  DEBUG_EXIT();
+  return r;
+}
+
 antlrcpp::Any SymbolsVisitor::visitWriteString(AslParser::WriteStringContext *ctx) {
   DEBUG_ENTER();
   antlrcpp::Any r = visitChildren(ctx);

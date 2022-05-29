@@ -50,6 +50,7 @@ statement
         | READ left_expr ';'                                    # readStmt
         | WRITE expr ';'                                        # writeExpr
         | WRITE STRING ';'                                      # writeString
+        | 'map' ident 'into' ident 'using' ident ';'			# map
         ;
 
 // Grammar for left expressions (l-values in C++)

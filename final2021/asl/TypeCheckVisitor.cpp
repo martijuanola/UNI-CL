@@ -268,6 +268,59 @@ antlrcpp::Any TypeCheckVisitor::visitWriteExpr(AslParser::WriteExprContext *ctx)
   return 0;
 }
 
+antlrcpp::Any TypeCheckVisitor::visitMap(AslParser::MapContext *ctx) {
+  DEBUG_ENTER();
+  visit(ctx->ident(0));
+  visit(ctx->ident(1));
+  visit(ctx->ident(2));
+  TypesMgr::TypeId t1 = getTypeDecor(ctx->ident(0));
+  TypesMgr::TypeId t2 = getTypeDecor(ctx->ident(1));
+  TypesMgr::TypeId t3 = getTypeDecor(ctx->ident(2));
+  
+  if ((not Types.isErrorTy(t1)) and (not Types.isArrayTy(t1))) {
+    Errors.incompatibleMapOperands(ctx);
+  }
+  else if ((not Types.isErrorTy(t2)) and (not Types.isArrayTy(t2))) {
+    Errors.incompatibleMapOperands(ctx);
+  }
+  else if(Types.isArrayTy(t1) and Types.isArrayTy(t2)) {
+    int s1 = Types.getArraySize(t1);
+    int s2 = Types.getArraySize(t2);
+    if(s1 != s2) Errors.incompatibleMapOperands(ctx);
+    else {
+      //part de funció t3
+      if ((not Types.isErrorTy(t1)) and (not Types.isFunctionTy(t3))) {
+        Errors.incompatibleMapOperands(ctx);
+      }
+      else {
+        int nParams = Types.getNumOfParameters(t3);
+        if(nParams != 1) Errors.incompatibleMapOperands(ctx);
+        else if(Types.isArrayTy(t1)) {
+          TypesMgr::TypeId ta1 = Types.getArrayElemType(t1);
+          TypesMgr::TypeId tf1 = Types.getParameterType(t3,0);
+          if((not Types.isErrorTy(ta1)) and (not Types.isErrorTy(tf1)) and (not Types.equalTypes(ta1,tf1))) {
+            Errors.incompatibleMapOperands(ctx);
+          }
+          else {
+            TypesMgr::TypeId ta2 = Types.getArrayElemType(t2);
+          TypesMgr::TypeId tr = Types.getFuncReturnType(t3);
+          if((not Types.isErrorTy(ta2)) and (not Types.isErrorTy(tr)) and (not Types.equalTypes(ta2,tr))) {
+            Errors.incompatibleMapOperands(ctx);
+          }
+          }
+        }
+      }
+    }
+  }
+  
+  
+  
+  
+  
+  DEBUG_EXIT();
+  return 0;
+}
+
 antlrcpp::Any TypeCheckVisitor::visitWriteString(AslParser::WriteStringContext *ctx) {
   DEBUG_ENTER();
   antlrcpp::Any r = visitChildren(ctx);
