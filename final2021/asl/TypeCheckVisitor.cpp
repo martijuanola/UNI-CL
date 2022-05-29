@@ -295,22 +295,21 @@ antlrcpp::Any TypeCheckVisitor::visitMap(AslParser::MapContext *ctx) {
       else {
         int nParams = Types.getNumOfParameters(t3);
         if(nParams != 1) Errors.incompatibleMapOperands(ctx);
-        else if(Types.isArrayTy(t1)) {
+        else {
           TypesMgr::TypeId ta1 = Types.getArrayElemType(t1);
           TypesMgr::TypeId tf1 = Types.getParameterType(t3,0);
-          if((not Types.isErrorTy(ta1)) and (not Types.isErrorTy(tf1)) and (not Types.equalTypes(ta1,tf1))) {
-            if(not (Types.isIntegerTy(ta1) and Types.isFloatTy(tf1))) {
-              Errors.incompatibleMapOperands(ctx);
-            }
+          if((not Types.isErrorTy(ta1)) and (not Types.isErrorTy(tf1)) and
+          (not Types.equalTypes(ta1,tf1)) and (not (Types.isIntegerTy(ta1) and Types.isFloatTy(tf1)))) {
+            Errors.incompatibleMapOperands(ctx);
           }
           else {
             TypesMgr::TypeId ta2 = Types.getArrayElemType(t2);
-          TypesMgr::TypeId tr = Types.getFuncReturnType(t3);
-          if((not Types.isErrorTy(ta2)) and (not Types.isErrorTy(tr)) and (not Types.equalTypes(ta2,tr))) {
-            if(not (Types.isIntegerTy(ta2) and Types.isFloatTy(tr))) {
-              Errors.incompatibleMapOperands(ctx);
+            TypesMgr::TypeId tr = Types.getFuncReturnType(t3);
+            if((not Types.isErrorTy(ta2)) and (not Types.isErrorTy(tr)) and (not Types.equalTypes(ta2,tr))) {
+              if(not (Types.isIntegerTy(tr) and Types.isFloatTy(ta2))) {
+                Errors.incompatibleMapOperands(ctx);
+              }
             }
-          }
           }
         }
       }
