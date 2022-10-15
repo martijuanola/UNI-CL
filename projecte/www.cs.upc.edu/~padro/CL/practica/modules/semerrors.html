@@ -1,0 +1,183 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Semantic Errors &#8212; CL Lab Project 2022 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="t-Code Virtual Machine - Instruction set and operation manual" href="../tvm.html" />
+    <link rel="prev" title="Code Manager" href="code.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../tvm.html" title="t-Code Virtual Machine - Instruction set and operation manual"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="code.html" title="Code Manager"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">CL Lab Project 2022 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../project.html" accesskey="U">Lab Project of Compilers - FIB UPC, 2022</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Semantic Errors</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="semantic-errors">
+<h1>Semantic Errors<a class="headerlink" href="#semantic-errors" title="Permalink to this headline">¶</a></h1>
+<p>The SemErrors module allows the compiler to record errors, along with related information (such as the line where they happened).</p>
+<p>In this way, errors do not need to be emitted when they are found (which may lead to confusing order in the errors), but they can be printed ordered according to the line where they occur, once the analysis is completed.</p>
+<p>Also, the class takes care of generating the error with the appropriate text, which would ease e.g. translation of error messages to languages other than English.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="c1">////////////////////////////////////////////////////////////////</span>
+<span class="linenos"> 2</span><span class="c1">// Class SemErrors: this class contains methods that emit</span>
+<span class="linenos"> 3</span><span class="c1">// semantic error messages with their localization.</span>
+<span class="linenos"> 4</span><span class="c1">// It is used by the semantic visitors:</span>
+<span class="linenos"> 5</span><span class="c1">//   - SymbolsVisitor</span>
+<span class="linenos"> 6</span><span class="c1">//   - TypeCheckVisitor</span>
+<span class="linenos"> 7</span><span class="c1">// Semantic errors emitted are kept in a vector and when the</span>
+<span class="linenos"> 8</span><span class="c1">// typecheck finishes they will be printed (sorted by line/column number)</span>
+<span class="linenos"> 9</span>
+<span class="linenos">10</span><span class="k">class</span><span class="w"> </span><span class="nc">SemErrors</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="linenos">11</span>
+<span class="linenos">12</span><span class="k">public</span><span class="o">:</span><span class="w"></span>
+<span class="linenos">13</span>
+<span class="linenos">14</span><span class="w">  </span><span class="c1">// Constructor</span>
+<span class="linenos">15</span><span class="w">  </span><span class="n">SemErrors</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">16</span>
+<span class="linenos">17</span><span class="w">  </span><span class="c1">// Write the semantic errors ordered by line number</span>
+<span class="linenos">18</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">print</span><span class="w"> </span><span class="p">();</span><span class="w"></span>
+<span class="linenos">19</span>
+<span class="linenos">20</span><span class="w">  </span><span class="c1">// Accessor to get the number of semantic errors</span>
+<span class="linenos">21</span><span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="nf">getNumberOfSemanticErrors</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">22</span>
+<span class="linenos">23</span><span class="w">  </span><span class="c1">// Methods that store the error messages</span>
+<span class="linenos">24</span><span class="w">  </span><span class="c1">//   node is the terminal node correspondig to the token IDENT in a declaration</span>
+<span class="linenos">25</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">declaredIdent</span><span class="w">                </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">tree</span><span class="o">::</span><span class="n">TerminalNode</span><span class="w"> </span><span class="o">*</span><span class="n">node</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">26</span><span class="w">  </span><span class="c1">//   node is the terminal node correspondig to the token IDENT in an expression</span>
+<span class="linenos">27</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">undeclaredIdent</span><span class="w">              </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">tree</span><span class="o">::</span><span class="n">TerminalNode</span><span class="w"> </span><span class="o">*</span><span class="n">node</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">28</span><span class="w">  </span><span class="c1">//   node is the terminal node correspondig to the token ASSIG</span>
+<span class="linenos">29</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">incompatibleAssignment</span><span class="w">       </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">tree</span><span class="o">::</span><span class="n">TerminalNode</span><span class="w"> </span><span class="o">*</span><span class="n">node</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">30</span><span class="w">  </span><span class="c1">//   ctx is the node corresponding to the left expression</span>
+<span class="linenos">31</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">nonReferenceableLeftExpr</span><span class="w">     </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">32</span><span class="w">  </span><span class="c1">//   node is the labeled operator token (referenced by op in the grammar)</span>
+<span class="linenos">33</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">incompatibleOperator</span><span class="w">         </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">Token</span><span class="w"> </span><span class="o">*</span><span class="n">node</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">34</span><span class="w">  </span><span class="c1">//   ctx is the node corresponding to an array access</span>
+<span class="linenos">35</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">nonArrayInArrayAccess</span><span class="w">        </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">36</span><span class="w">  </span><span class="c1">//   ctx is the node corresponding to the index expression in an array access</span>
+<span class="linenos">37</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">nonIntegerIndexInArrayAccess</span><span class="w"> </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">38</span><span class="w">  </span><span class="c1">//   ctx is the node corresponding to the expression</span>
+<span class="linenos">39</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">booleanRequired</span><span class="w">              </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">40</span><span class="w">  </span><span class="c1">//   ctx is the node corresponding to the function identifier </span>
+<span class="linenos">41</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">isNotCallable</span><span class="w">                </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">42</span><span class="w">  </span><span class="c1">//   ctx is the node corresponding to the function identifier</span>
+<span class="linenos">43</span><span class="w">  </span><span class="c1">//   This error will not be emitted (productive functions can be called as procedures)</span>
+<span class="linenos">44</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">isNotProcedure</span><span class="w">               </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">45</span><span class="w">  </span><span class="c1">//   ctx is the node corresponding to the identifier</span>
+<span class="linenos">46</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">isNotFunction</span><span class="w">                </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">47</span><span class="w">  </span><span class="c1">//   ctx is the node corresponding to the function identifier</span>
+<span class="linenos">48</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">numberOfParameters</span><span class="w">           </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">49</span><span class="w">  </span><span class="c1">//   pCtx is actual parameter node</span>
+<span class="linenos">50</span><span class="w">  </span><span class="c1">//   n is the number of argument starting from 1</span>
+<span class="linenos">51</span><span class="w">  </span><span class="c1">//   cCtc is the call node</span>
+<span class="linenos">52</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">incompatibleParameter</span><span class="w">        </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">pCtx</span><span class="p">,</span><span class="w"></span>
+<span class="linenos">53</span><span class="w">				     </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"></span>
+<span class="linenos">54</span><span class="w">				     </span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">cCtx</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">55</span><span class="w">  </span><span class="c1">//   pCtx is actual parameter node</span>
+<span class="linenos">56</span><span class="w">  </span><span class="c1">//   n is the number of argument starting from 1</span>
+<span class="linenos">57</span><span class="w">  </span><span class="c1">//   cCtc is the call node</span>
+<span class="linenos">58</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">referenceableParameter</span><span class="w">       </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">pCtx</span><span class="p">,</span><span class="w"></span>
+<span class="linenos">59</span><span class="w">				     </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"></span>
+<span class="linenos">60</span><span class="w">				     </span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">cCtx</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">61</span><span class="w">  </span><span class="c1">//   node is the terminal node correspondig to the token RETURN</span>
+<span class="linenos">62</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">incompatibleReturn</span><span class="w">           </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">tree</span><span class="o">::</span><span class="n">TerminalNode</span><span class="w"> </span><span class="o">*</span><span class="n">node</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">63</span><span class="w">  </span><span class="c1">//   ctx is the read or write instruction</span>
+<span class="linenos">64</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">readWriteRequireBasic</span><span class="w">        </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">65</span><span class="w">  </span><span class="c1">//   ctx is the instruction that needs a referenceable expression</span>
+<span class="linenos">66</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">nonReferenceableExpression</span><span class="w">   </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">67</span><span class="w">  </span><span class="c1">//   ctx is the program node (grammar start symbol) </span>
+<span class="linenos">68</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">noMainProperlyDeclared</span><span class="w">       </span><span class="p">(</span><span class="n">antlr4</span><span class="o">::</span><span class="n">ParserRuleContext</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">69</span>
+<span class="linenos">70</span><span class="p">};</span><span class="w">  </span><span class="c1">// class SemErrors</span>
+</pre></div>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="code.html"
+                          title="previous chapter">Code Manager</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="../tvm.html"
+                          title="next chapter"><em>t</em>-Code Virtual Machine - Instruction set and operation manual</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/modules/semerrors.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../tvm.html" title="t-Code Virtual Machine - Instruction set and operation manual"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="code.html" title="Code Manager"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">CL Lab Project 2022 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../project.html" >Lab Project of Compilers - FIB UPC, 2022</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Semantic Errors</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018-2022, Compilers. FIB, UPC..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.4.0.
+    </div>
+  </body>
+</html>

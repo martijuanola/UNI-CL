@@ -1,0 +1,11 @@
+Line 2:11 error: Operator '>' with incompatible types.
+Line 12:13 error: Operator '+' with incompatible types.
+Line 13:7 error: Assignment with incompatible types.
+Line 15:2 error: Instruction 'if' requires a boolean condition.
+Line 16:10 error: Assignment with incompatible types.
+Line 17:7 error: Assignment with incompatible types.
+Line 20:11 error: Operator '-' with incompatible types.
+Line 20:15 error: Parameter #1 with incompatible types in call to 'f'.
+Line 24:2 error: Identifier 'z' is undeclared.
+Line 24:8 error: Operator '+' with incompatible types.
+Line 25:2 error: Struct access to a non existent field name.

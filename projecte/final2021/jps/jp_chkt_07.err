@@ -1,0 +1,4 @@
+Line 4:8 error: Identifier 'i' is undeclared.
+Line 19:9 error: Operator '!=' with incompatible types.
+Line 20:12 error: Assignment with incompatible types.
+Line 29:8 error: Identifier 'j' is undeclared.

@@ -1,0 +1,16 @@
+Code Manager
+------------
+
+When generating code, our compiler will need to handle pieces of code created by different subtrees and combine them together to create more code (e.g. to create code for a *while*, the compiler will need to combine the code to compute the expression and the code of the instruction inside the loop with the right labels and jump instructions).
+
+The Code Manager module provides a class ``code`` that can be used to handle this code combinations, and finally write it to the output file when it is complete. Objects of type ``code`` contain ``subroutine`` objects, which contain ``instructionList`` objects, which in turn contain ``instruction`` objects.
+
+All these classes have methods to extend and combine them (e.g. add a ``subroutine`` to a ``code``, or add an ``instruction`` to an ``instructionList``, concatenate two ``instructionList`` objects, etc.)
+
+Additionally, this module contains also a static class ``counters`` that manages counters to generate labels for jumps in *if* and *while* instructions, and well as for temporal registers.
+
+.. literalinclude:: ../../../practica/common/code.h
+   :language: c++
+   :linenos:
+   :lines: 38-206,215-255,262-286,292-
+

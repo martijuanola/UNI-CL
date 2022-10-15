@@ -1,0 +1,19 @@
+Line 9:11 error: Array access with non integer index.
+Line 9:16 error: Identifier 'a' is not a callable function.
+Line 9:18 error: Identifier 'x' is undeclared.
+Line 10:2 error: Instruction 'map' with incompatible control variable.
+Line 11:7 error: Array access with non integer index.
+Line 11:10 error: Operator '==' with incompatible types.
+Line 12:5 error: Instruction 'map' with incompatible assigned expression(s).
+Line 12:5 error: Instruction 'map' with non-boolean condition.
+Line 14:16 error: Array access with non integer index.
+Line 14:22 error: Operator '==' with incompatible types.
+Line 15:2 error: Instruction 'map' with incompatible assigned expression(s).
+Line 15:2 error: Instruction 'map' with incompatible control variable.
+Line 15:2 error: Instruction 'map' with non arrays operands or with arrays of different size.
+Line 16:2 error: Instruction 'map' with incompatible assigned expression(s).
+Line 16:2 error: Instruction 'map' with non arrays operands or with arrays of different size.
+Line 16:2 error: Instruction 'map' with non-boolean condition.
+Line 16:10 error: Operator '+' with incompatible types.
+Line 17:2 error: Array access to a non array operand.
+Line 17:21 error: Array access with non integer index.

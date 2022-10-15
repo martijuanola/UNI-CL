@@ -1,0 +1,6 @@
+Line 8:11 error: Array access with non integer index.
+Line 10:7 error: Array access with non integer index.
+Line 10:10 error: Operator '==' with incompatible types.
+Line 13:16 error: Array access with non integer index.
+Line 16:2 error: Array access to a non array operand.
+Line 16:21 error: Array access with non integer index.

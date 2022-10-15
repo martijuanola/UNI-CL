@@ -1,0 +1,583 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Description of the tests &#8212; CL Lab Project 2022 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installing ANTLR4 in your Linux" href="install.html" />
+    <link rel="prev" title="t-Code Virtual Machine - Instruction set and operation manual" href="tvm.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="install.html" title="Installing ANTLR4 in your Linux"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="tvm.html" title="t-Code Virtual Machine - Instruction set and operation manual"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CL Lab Project 2022 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="project.html" accesskey="U">Lab Project of Compilers - FIB UPC, 2022</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Description of the tests</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="description-of-the-tests">
+<h1>Description of the tests<a class="headerlink" href="#description-of-the-tests" title="Permalink to this headline">¶</a></h1>
+<p>In order to incrementally build the compiler, a list of program tests has been proposed. This table summarizes what are the new elements of the Asl language that appear in each test with respect to the previous one.</p>
+<p>Some indications on modifying compiler components are also given, but should be taken <em>just as a guide</em>.</p>
+<section id="tests-for-parsing-and-type-check">
+<h2>Tests for parsing and type check<a class="headerlink" href="#tests-for-parsing-and-type-check" title="Permalink to this headline">¶</a></h2>
+<p>The following tests can help you to define the grammar of the whole ASL language and to complete the semantic analysis (<em>SymbolsVisitor</em> and <em>TypeCheckVisitor</em> modules).
+Some changes in the ASL grammar will produce errors executing <em>g++</em> on <em>CodeGenVisitor.cpp</em>. Adjust this module when necessary.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 19%" />
+<col style="width: 18%" />
+<col style="width: 19%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Test</p></th>
+<th class="head"><p>New structures / new checks</p></th>
+<th class="head"><p>Changes in Asl grammar</p></th>
+<th class="head"><p>Changes in SymbolsVisitor</p></th>
+<th class="head"><p>Changes in TypeCheckVisitor</p></th>
+<th class="head"><p>Adjust in CodeGenVisitor</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">jp_chkt_01</span></code></p></td>
+<td><p>Other basic types,
+new operators,
+values, parenthesis, …
+Use of <em>type coercion</em></p></td>
+<td><p>Update rule <em>type</em>
+and rule <em>expr</em>.
+New tokens, floats, …</p></td>
+<td><p>Update variable declaration
+(new basic types).
+See module <em>TypesMgr</em></p></td>
+<td><p>Type check of new expressions.
+<em>Type coercion</em> from <em>int</em>
+to <em>float</em>
+(update both .h and .cpp)</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">jp_chkt_02</span></code></p></td>
+<td><p>Multiple variable
+declarations in a single line.
+(new token <em>true</em>)</p></td>
+<td><p>Update variable declaration</p></td>
+<td><p>Update variable declaration</p></td>
+<td><p>(new value <em>true</em>)</p></td>
+<td><p>Fix access to the text of
+the <em>first</em> variable to
+avoid compilation error</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">jp_chkt_03</span></code></p></td>
+<td><p><em>while</em> and <em>return</em> statements.
+<em>else</em> in conditionals.
+(new operator <em>!=</em>)
+(new operator <em>!=</em>)</p></td>
+<td><p>Update rule <em>statement</em></p></td>
+<td></td>
+<td><p>Type check of new statements
+(update both .h and .cpp)
+Fix access to <em>statement</em> in <em>if</em>
+children (there are two now)</p></td>
+<td><p>Fix access to <em>statement</em>
+children in <em>if</em> (there are
+two now) to avoid
+compilation error</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">jp_chkt_04</span></code></p></td>
+<td><p>Functions may have <em>parameters</em>
+and return values</p></td>
+<td><p>Update function
+declaration (use new rules).
+Update return statement</p></td>
+<td><p>Update <em>visitFunction</em> to
+create the appropriate function
+type. See module <em>TypesMgr</em>.
+<strong>Hint:</strong> add new visit methods
+to process parameters</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">jp_chkt_05</span></code></p></td>
+<td><p>Array access in
+expressions and in <em>l-value</em>
+expressions</p></td>
+<td><p>Update rules <em>left_expr</em>
+and <em>expr</em></p></td>
+<td></td>
+<td><p>Add new visitors for array
+access in <em>left_expr</em> and in
+<em>expr</em> (update both .h and .cpp)</p></td>
+<td><p>Modify the visitor for
+rule <em>left_expr</em> to
+use the new visit method</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">jp_chkt_06</span></code></p></td>
+<td><p>Call to function as a form
+of expression.
+Functions without parametres</p></td>
+<td><p>Update rule <em>expr</em> to accept
+function calls</p></td>
+<td></td>
+<td><p>Add new visitors for function
+call. Type check the expression
+appropiately
+(update both .h and .cpp)</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">jp_chkt_07</span></code></p></td>
+<td><p>Call to function with parameters,
+without errors in arguments.
+No <em>main</em> function detection
+(automatic)</p></td>
+<td></td>
+<td></td>
+<td><p>Type check arguments
+(<em>actual</em> parameters)</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">jp_chkt_08</span></code></p></td>
+<td><p>Call to procedures with
+parameters, without errors in
+arguments. Inappropriate calls
+to procedures and functions,
+regardless of arguments</p></td>
+<td><p>Update statements</p></td>
+<td></td>
+<td><p>Type check of function call
+and compute expression type.
+Type check arguments
+(<em>actual</em> parameters)</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">jp_chkt_09</span></code></p></td>
+<td><p>Incorrect use of a function.
+<em>l-value</em> expresions in <em>read</em></p></td>
+<td></td>
+<td></td>
+<td><p>Compute properly the <em>IsLValue</em>
+decoration of the identifiers
+(probably nothing)</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">jp_chkt_10</span></code></p></td>
+<td><p>Array declarations</p></td>
+<td><p>New structured <em>type</em>.
+<strong>Hint:</strong> use 2 rules, <em>type</em>
+and <em>basic_type</em></p></td>
+<td><p>Add new visit methods to precess
+types. See module <em>TypesMgr</em>.
+Note: remember that functions
+only return <em>basic</em> types
+(update both .h and .cpp)</p></td>
+<td><p>Probably nothing</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">jp_chkt_11</span></code></p></td>
+<td><p>Use of <em>read</em> statement</p></td>
+<td></td>
+<td></td>
+<td><p>Probably nothing if type check
+of array access is correct</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">jp_chkt_12</span></code></p></td>
+<td><p>Extensive use of <em>return</em>
+statement in procedures and
+functions, with and without
+<em>type coercion</em>.</p></td>
+<td></td>
+<td><p>Note: remember that the first
+declaration of an identifier
+<em>in a given scope</em> prevails
+over the rest (on <em>that scope</em>)</p></td>
+<td><p>Update type check of <em>return</em>
+statement.
+<strong>Hint:</strong> the return type of the
+current function can be obtained
+from SymTab in <em>visitFunction</em>,
+and saved/retrieved with the
+methods <em>setCurrentFunctionTy</em>
+and <em>getCurrentFunctionTy</em>
+(available in TypeCheckVisitor).</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">jp_chkt_13</span></code></p></td>
+<td><p>Check undeclared identifiers</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">jp_chkt_14</span></code></p></td>
+<td><p>Check that parameters must be
+declared in the <em>local scope</em>,
+with redeclarations of symbols
+in the same scope.
+Also, function calls may have
+errors due to the type of the
+<em>arguments</em></p></td>
+<td></td>
+<td><p>Nothing if <em>visitFunction</em>
+was properly updated in
+the test <code class="docutils literal notranslate"><span class="pre">jp_chck_04</span></code>.
+Note: remember that the first
+declaration of an identifier
+<em>in a given scope</em> prevails
+over the rest (on that <em>scope</em>)</p></td>
+<td><p>In a function call, remember
+that arguments (<em>actual</em>
+<em>parameters</em>) must always     be
+processed. Now, also type check
+<em>actual</em> vs. <em>formal</em> parameters
+See module <em>SemErrors</em></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">jp_chkt_15</span></code></p></td>
+<td><p>Similar to <code class="docutils literal notranslate"><span class="pre">jp_chck_14</span></code> and
+and previous ones: function calls
+with parameters and arrays
+involved</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">jp_chkt_16</span></code></p></td>
+<td><p>Similar to <code class="docutils literal notranslate"><span class="pre">jp_chck_15</span></code> and
+the previous ones: function calls
+with parameters and arrays
+involved</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">jp_chkt_17</span></code></p></td>
+<td><p>Similar to <code class="docutils literal notranslate"><span class="pre">jp_chck_16</span></code> and
+the previous ones: function calls
+with parameters, assignment to
+to an array, …</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">jp_chkt_18</span></code></p></td>
+<td><p>Function and procedure calls
+may have a wrong number of
+arguments</p></td>
+<td></td>
+<td></td>
+<td><p>Type check function and procedure
+calls to detect also these errors.
+See module <em>SemErrors</em></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">jp_chkt_19</span></code></p></td>
+<td><p>Use of operator <em>modulo</em> (%)</p></td>
+<td><p>(Update rule <em>expr</em>)</p></td>
+<td></td>
+<td><p>Type check the operator <em>modulo</em></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">jp_chkt_20</span></code></p></td>
+<td><p>Array assignments, arrays as
+parameters, <em>type coercion</em>, …
+Similar to previous tests</p></td>
+<td></td>
+<td></td>
+<td><p>Probably nothing</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="tests-for-code-generation">
+<h2>Tests for code generation<a class="headerlink" href="#tests-for-code-generation" title="Permalink to this headline">¶</a></h2>
+<p>The following tests can help you to complete the code generation (<em>CodeGenVisitor</em> module).
+Some changes may involve your ASL grammar and/or type check. Adjust <em>Asl.g4</em> and
+<em>TypeCheckVisitor</em> module if necessary.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 24%" />
+<col style="width: 18%" />
+<col style="width: 20%" />
+<col style="width: 26%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Test</p></th>
+<th class="head"><p>New structures / new code</p></th>
+<th class="head"><p>Adjust in Asl grammar</p></th>
+<th class="head"><p>Adjust in TypeCheckVisitor</p></th>
+<th class="head"><p>Changes in CodeGenVisitor</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">jp_genc_01</span></code></p></td>
+<td><p>Multiple variable declarations
+in a single line.
+Other basic types, new operators,
+values, parenthesis,…
+<em>Type coercion</em> in some
+expressions. Extend <cite>write</cite>
+statement with new types</p></td>
+<td></td>
+<td></td>
+<td><p>Update variable declaration.
+Update code for <cite>write</cite> statement.
+Generate code for new
+expressions, with
+<em>coercion</em> <cite>int</cite>
+<span class="math notranslate nohighlight">\(\rightarrow\)</span> <cite>float</cite> in
+<em>arithmetic</em> operators.
+(Update both .h and .cpp).
+See module <em>code</em></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">jp_genc_02</span></code></p></td>
+<td><p>Use of <cite>while</cite> statement. New
+operators <cite>&gt;</cite>, <cite>&lt;</cite> (without
+<em>type coercion</em>). Boolean values
+<cite>true</cite> and <cite>false</cite></p></td>
+<td><p>If necessary, add value
+<cite>false</cite></p></td>
+<td><p>If necessary, type check
+the new value</p></td>
+<td><p>Generate code for <cite>while</cite>
+statement, and for new expressions</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">jp_genc_03</span></code></p></td>
+<td><p>Functions may have <em>parameters</em>
+and return values. Call to a
+function as a form of expression
+(only parameters of <em>basic</em>
+<em>types</em>). Use of <cite>return expr</cite>
+statement (without <em>type</em>
+<em>coercion</em>)</p></td>
+<td></td>
+<td></td>
+<td><p>Update function declaration
+(<cite>visitFunction</cite>).
+Add new visitors for function
+call, and generate code for this
+expression appropiately
+(update both .h and .cpp).
+See module <em>code</em></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">jp_genc_04</span></code></p></td>
+<td><p>Call to a procedure with
+<em>parameters</em> of <em>basic types</em>
+(without <em>type coercion</em>).
+New operator <cite>&lt;=</cite> with <em>type</em>
+<em>coercion</em></p></td>
+<td></td>
+<td></td>
+<td><p>Update procedure call to
+allow <em>parameters</em>.
+Relational operators
+with <em>coercion</em> <cite>int</cite>
+<span class="math notranslate nohighlight">\(\rightarrow\)</span> <cite>float</cite></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">jp_genc_05</span></code></p></td>
+<td><p>Use of <em>array</em> type in
+declarations of local variables.
+Array access in expressions, and
+in <em>l-value</em> expressions.
+<cite>if-then-else</cite> statement.
+Function calls with <em>type</em>
+<em>coercion</em> in parameters</p></td>
+<td><p>If necessary, complete
+the <cite>if</cite> statement
+with <cite>else</cite> branch</p></td>
+<td><p>If necessary, complete
+the type check of the <cite>if</cite>
+statement</p></td>
+<td><p>Update <em>assignment</em> statement:
+now a value can be assigned
+to an array position.
+Update <cite>if</cite> statement. Update
+function call to allow <em>coercion</em>
+in actual <em>parameters</em></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">jp_genc_06</span></code></p></td>
+<td><p><em>Type coercion</em> in asssignments,
+and in actual parameters of
+procedure calls.
+Use of <cite>read</cite> statement into non
+<cite>int</cite> expressions. Call to
+functions discarding the result
+(like a procedure)</p></td>
+<td></td>
+<td></td>
+<td><p>Update <em>assignment</em> to allow
+<em>coercion</em>. Update <cite>read</cite>
+statement. Update code generation
+in “procedure” calls</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">jp_genc_07</span></code></p></td>
+<td><p>Use of parameters of type
+<cite>array</cite>: access to the value and
+to the  address of an array
+position. Procedure calls with
+actual parameters of type array
+(passed by <em>reference</em>)</p></td>
+<td></td>
+<td></td>
+<td><p>Update procedure call to allow
+actual <em>parameters</em> of type
+<em>array</em> (passed by <em>reference</em>).
+Only local arrays are passed.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">jp_genc_08</span></code></p></td>
+<td><p>Function calls with actual
+parameters of type array
+(passed by <em>reference</em>)</p></td>
+<td></td>
+<td></td>
+<td><p>Update function call to allow
+actual <em>parameters</em> of type
+<em>array</em> (passed by <em>reference</em>).
+Only local arrays are passed</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">jp_genc_09</span></code></p></td>
+<td><p>Definition and use of the
+function <cite>factorial</cite></p></td>
+<td></td>
+<td></td>
+<td><p>Probably nothing</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">jp_genc_10</span></code></p></td>
+<td><p>Definition and use of the
+function <cite>prod_escalar</cite>
+(<em>dot product</em> of two arrays)</p></td>
+<td></td>
+<td></td>
+<td><p>Probably nothing, but check
+the pass of arrays as parameters</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">jp_genc_11</span></code></p></td>
+<td><p>Extend <cite>write</cite> statement with
+<em>char</em> expression. Operator
+<em>modulo</em>. Values of type <em>char</em></p></td>
+<td></td>
+<td></td>
+<td><p>Update <cite>write</cite> statement.
+Add <em>modulo</em> operator in
+<em>arithmetic</em> expressions.
+Generate code for new values</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">jp_genc_12</span></code></p></td>
+<td><p>Array assignment (<em>a = b</em>),
+where <em>a,b</em> may be local
+variables and/or parameters</p></td>
+<td></td>
+<td></td>
+<td><p>Update assignment statement</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Description of the tests</a><ul>
+<li><a class="reference internal" href="#tests-for-parsing-and-type-check">Tests for parsing and type check</a></li>
+<li><a class="reference internal" href="#tests-for-code-generation">Tests for code generation</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="tvm.html"
+                          title="previous chapter"><em>t</em>-Code Virtual Machine - Instruction set and operation manual</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="install.html"
+                          title="next chapter">Installing ANTLR4 in your Linux</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/steps.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="install.html" title="Installing ANTLR4 in your Linux"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="tvm.html" title="t-Code Virtual Machine - Instruction set and operation manual"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CL Lab Project 2022 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="project.html" >Lab Project of Compilers - FIB UPC, 2022</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Description of the tests</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018-2022, Compilers. FIB, UPC..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.4.0.
+    </div>
+  </body>
+</html>

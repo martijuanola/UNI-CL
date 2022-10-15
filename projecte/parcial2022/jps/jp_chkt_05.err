@@ -1,0 +1,27 @@
+Line 7:30 error: Identifier 'z' is undeclared.
+Line 8:3 error: Instruction 'map' with incompatible assigned expression(s).
+Line 9:3 error: Instruction 'map' with incompatible control variable.
+Line 9:9 error: Identifier 'q' is undeclared.
+Line 9:12 error: Operator '-' with incompatible types.
+Line 10:3 error: Instruction 'map' with incompatible control variable.
+Line 10:3 error: Instruction 'map' with non-boolean condition.
+Line 22:7 error: Assignment with incompatible types.
+Line 22:11 error: Array access with non integer index.
+Line 22:18 error: Identifier 'x' is undeclared.
+Line 23:2 error: Instruction 'map' with incompatible control variable.
+Line 24:7 error: Array access with non integer index.
+Line 24:10 error: Operator '==' with incompatible types.
+Line 25:5 error: Instruction 'map' with incompatible assigned expression(s).
+Line 25:11 error: Array access to a non array operand.
+Line 27:16 error: Array access with non integer index.
+Line 27:22 error: Operator '==' with incompatible types.
+Line 28:2 error: Instruction 'map' with incompatible assigned expression(s).
+Line 28:2 error: Instruction 'map' with incompatible control variable.
+Line 28:2 error: Instruction 'map' with non arrays operands or with arrays of different size.
+Line 29:2 error: Instruction 'map' with incompatible assigned expression(s).
+Line 29:2 error: Instruction 'map' with non arrays operands or with arrays of different size.
+Line 29:2 error: Instruction 'map' with non-boolean condition.
+Line 29:10 error: Operator '+' with incompatible types.
+Line 29:40 error: Identifier 'y' is undeclared.
+Line 30:2 error: Array access to a non array operand.
+Line 30:21 error: Array access with non integer index.

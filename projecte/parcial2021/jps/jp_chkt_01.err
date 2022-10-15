@@ -1,0 +1,4 @@
+Line 9:8 error: Array access with non integer index.
+Line 13:4 error: Array access with non integer index.
+Line 13:7 error: Assignment with incompatible types.
+Line 13:11 error: Array access with non integer index.

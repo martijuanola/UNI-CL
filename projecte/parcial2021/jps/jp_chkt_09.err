@@ -1,0 +1,22 @@
+Line 4:21 error: Operator 'not' with incompatible types.
+Line 4:29 error: Operator '<' with incompatible types.
+Line 8:7 error: Assignment with incompatible types.
+Line 8:10 error: Operator '+' with incompatible types.
+Line 19:13 error: Operator '+' with incompatible types.
+Line 20:7 error: Assignment with incompatible types.
+Line 22:2 error: Instruction 'if' requires a boolean condition.
+Line 23:10 error: Assignment with incompatible types.
+Line 24:7 error: Assignment with incompatible types.
+Line 27:11 error: Operator '-' with incompatible types.
+Line 27:15 error: Parameter #1 with incompatible types in call to 'f'.
+Line 27:18 error: Parameter #2 with incompatible types in call to 'f'.
+Line 27:24 error: Operator '+' with incompatible types.
+Line 27:28 error: Parameter #1 with incompatible types in call to 'f'.
+Line 27:31 error: Parameter #2 with incompatible types in call to 'f'.
+Line 28:2 error: Identifier 'z' is undeclared.
+Line 28:8 error: Operator '+' with incompatible types.
+Line 28:12 error: Parameter #1 with incompatible types in call to 'f'.
+Line 29:2 error: Identifier 'z' is undeclared.
+Line 29:8 error: Operator '-' with incompatible types.
+Line 29:12 error: Parameter #1 with incompatible types in call to 'f'.
+Line 30:2 error: Tuple access to a non existent field number.

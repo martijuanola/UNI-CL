@@ -1,0 +1,134 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Lab Project of Compilers - FIB UPC, 2022 &#8212; CL Lab Project 2022 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ASL Description" href="asl.html" />
+    <link rel="prev" title="Introduction to ANTLR4" href="intro.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="asl.html" title="ASL Description"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="Introduction to ANTLR4"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CL Lab Project 2022 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Lab Project of Compilers - FIB UPC, 2022</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <p><span class="target" id="index-0"></span>Project</p>
+<section id="lab-project-of-compilers-fib-upc-2022">
+<h1>Lab Project of Compilers - FIB UPC, 2022<a class="headerlink" href="#lab-project-of-compilers-fib-upc-2022" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<p>The lab project will consist of building a compiler for an simplified imperative language named ASL (standing for <em>A Simple Language</em>).</p>
+<p>The project will consist of:</p>
+<ul class="simple">
+<li><p>Writting a grammar for the language, and use ANTLR4 to generate a parser in C++</p></li>
+<li><p>Writting a semantic check module (in C++) that performs semantic analysis (i.e. variable type checking) on the tree produced by the parser on a given input program.</p></li>
+<li><p>Writting a code generation module (in C++) that generates low-level code for the input program. We will generate simple 3-address code that will run on a custom virtual machine called tVM (standing for <em>t-code Virtual Machine</em>).</p></li>
+</ul>
+<p>In order to do the work, you will have some help:</p>
+<ul class="simple">
+<li><p>You will be using ANTLR-4, a powerful tool that will make it much easier to build your compiler.</p></li>
+<li><p>You will be provided with a basic working compiler (with just assignment instructions and sum operations) which you will need to complete until your ASL compiler is finished.</p></li>
+<li><p>You will also be provided with some auxiliary modules to help manage the data structures required to build the compiler.</p></li>
+<li><p>Finally, you will be provided with a list of ASL programs to incrementally test your compiler.</p></li>
+</ul>
+<p>Here you will find further documentation about:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="asl.html"><span class="doc">The target language, ASL</span></a></p></li>
+<li><p><a class="reference internal" href="modules.html"><span class="doc">The provided compiler skeleton and auxiliary modules</span></a></p></li>
+<li><p><a class="reference internal" href="tvm.html"><span class="doc">The description of tVM machine and the language it can execute</span></a></p></li>
+<li><p><a class="reference internal" href="steps.html"><span class="doc">The description of incremental program tests</span></a></p></li>
+</ul>
+<p>You can also download the required code (also available at <em>$HOME/assig/cl/practica/</em> in FIB labs):</p>
+<ul class="simple">
+<li><p><a class="reference download internal" download="" href="_downloads/57cf7eb2e698a9c81ac98dd6b6feac13/CL-lab.tgz"><code class="xref download docutils literal notranslate"><span class="pre">Project</span> <span class="pre">base</span> <span class="pre">files</span></code></a>.</p></li>
+</ul>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="intro.html"
+                          title="previous chapter">Introduction to ANTLR4</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="asl.html"
+                          title="next chapter">ASL Description</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/project.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="asl.html" title="ASL Description"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="Introduction to ANTLR4"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CL Lab Project 2022 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Lab Project of Compilers - FIB UPC, 2022</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018-2022, Compilers. FIB, UPC..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.4.0.
+    </div>
+  </body>
+</html>

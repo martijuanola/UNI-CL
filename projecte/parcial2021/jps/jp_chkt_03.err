@@ -1,0 +1,8 @@
+Line 8:2 error: Pack/unpack with non array operand.
+Line 10:13 error: Operator '+' with incompatible types.
+Line 11:2 error: Pack/unpack with non array operand.
+Line 12:7 error: Array access to a non array operand.
+Line 14:26 error: Array access with non integer index.
+Line 15:4 error: Assignment with incompatible types.
+Line 16:4 error: Array access with non integer index.
+Line 16:9 error: Assignment with incompatible types.

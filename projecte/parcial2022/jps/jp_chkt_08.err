@@ -1,0 +1,7 @@
+Line 9:12 error: Operator '+' with incompatible types.
+Line 10:2 error: Struct access to a non struct operand.
+Line 11:8 error: Struct access to a non struct operand.
+Line 12:2 error: Instruction 'if' requires a boolean condition.
+Line 14:7 error: Assignment with incompatible types.
+Line 16:14 error: Struct access to a non struct operand.
+Line 17:2 error: Struct access to a non struct operand.

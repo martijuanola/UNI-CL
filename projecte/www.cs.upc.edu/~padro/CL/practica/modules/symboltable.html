@@ -1,0 +1,195 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>SymbolTable &#8212; CL Lab Project 2022 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Tree Decoration" href="decoration.html" />
+    <link rel="prev" title="Type Manager" href="typemanager.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="decoration.html" title="Tree Decoration"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="typemanager.html" title="Type Manager"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">CL Lab Project 2022 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../project.html" accesskey="U">Lab Project of Compilers - FIB UPC, 2022</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SymbolTable</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="symboltable">
+<h1>SymbolTable<a class="headerlink" href="#symboltable" title="Permalink to this headline">¶</a></h1>
+<p>The symbol table stores which <em>symbols</em> have been defined in the program (in ASL, that is
+just variable and function names) and associates each symbol with a <em>type</em> in <code class="docutils literal notranslate"><span class="pre">TypeMgr</span></code>.</p>
+<p>The symbol table is also able to handle visibility scopes, so we can have separate tables for
+separate functions, or stacked tables for nested scopes.</p>
+<p>Thus, class <code class="docutils literal notranslate"><span class="pre">SymTable</span></code> stores which symbols have been defined in each scope, and we can
+query it about which is the <em>type</em> of symbol, whether a symbol is defined in the current
+function, or (if it is defined twice because there is a nested scope) which is the definition
+we should use at each moment.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="c1">////////////////////////////////////////////////////////////////</span>
+<span class="linenos"> 2</span><span class="c1">// Class SymTable: stores the symbols declared in the program</span>
+<span class="linenos"> 3</span><span class="c1">// along with the information associated with each one:</span>
+<span class="linenos"> 4</span><span class="c1">//   - its class (the symbol can be a function, a parameter or</span>
+<span class="linenos"> 5</span><span class="c1">//     a local variable)</span>
+<span class="linenos"> 6</span><span class="c1">//   - its type (the TypeId returned by the TypesMgr)</span>
+<span class="linenos"> 7</span><span class="c1">// The symbols are grouped in scopes. In the current version</span>
+<span class="linenos"> 8</span><span class="c1">// of Asl there are two level of scopes: the global and the</span>
+<span class="linenos"> 9</span><span class="c1">// local. The former for the symbols of function names, and</span>
+<span class="linenos">10</span><span class="c1">// the latter for symbols declared inside a function:</span>
+<span class="linenos">11</span><span class="c1">// parameters and local variables.</span>
+<span class="linenos">12</span><span class="c1">// The SymTable uses a &#39;stack&#39; to keep the current available</span>
+<span class="linenos">13</span><span class="c1">// scopes that determines which symbols are visible and</span>
+<span class="linenos">14</span><span class="c1">// which are not. Entering in a function will push a new</span>
+<span class="linenos">15</span><span class="c1">// scope to the stack and exiting will pop the stack.</span>
+<span class="linenos">16</span>
+<span class="linenos">17</span><span class="k">class</span><span class="w"> </span><span class="nc">SymTable</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="linenos">18</span>
+<span class="linenos">19</span><span class="k">public</span><span class="o">:</span><span class="w"></span>
+<span class="linenos">20</span>
+<span class="linenos">21</span><span class="w">  </span><span class="c1">// The ScopeId is an index in a vector</span>
+<span class="linenos">22</span><span class="w">  </span><span class="k">typedef</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">ScopeId</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">23</span>
+<span class="linenos">24</span><span class="w">  </span><span class="c1">// Name of the Global Scope</span>
+<span class="linenos">25</span><span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">GLOBAL_SCOPE_NAME</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">26</span>
+<span class="linenos">27</span><span class="w">  </span><span class="c1">// Constructor</span>
+<span class="linenos">28</span><span class="w">  </span><span class="n">SymTable</span><span class="p">(</span><span class="n">TypesMgr</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">Types</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">29</span><span class="w">  </span><span class="c1">// Destructor</span>
+<span class="linenos">30</span><span class="w">  </span><span class="o">~</span><span class="n">SymTable</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">31</span>
+<span class="linenos">32</span><span class="w">  </span><span class="c1">// Manage the stack of scopes</span>
+<span class="linenos">33</span><span class="w">  </span><span class="c1">//   - create a new empty scope and push its ScopeId in the stack</span>
+<span class="linenos">34</span><span class="w">  </span><span class="n">ScopeId</span><span class="w"> </span><span class="nf">pushNewScope</span><span class="w">  </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">name</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">35</span><span class="w">  </span><span class="c1">//   - pop the stack of scopes</span>
+<span class="linenos">36</span><span class="w">  </span><span class="kt">void</span><span class="w">    </span><span class="nf">popScope</span><span class="w">      </span><span class="p">();</span><span class="w"></span>
+<span class="linenos">37</span><span class="w">  </span><span class="c1">//   - push a previously created scope sc and set it as current scope</span>
+<span class="linenos">38</span><span class="w">  </span><span class="kt">void</span><span class="w">    </span><span class="nf">pushThisScope</span><span class="w"> </span><span class="p">(</span><span class="n">ScopeId</span><span class="w"> </span><span class="n">sc</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">39</span><span class="w">  </span><span class="c1">//   - returns the current scope</span>
+<span class="linenos">40</span><span class="w">  </span><span class="n">ScopeId</span><span class="w"> </span><span class="nf">topScope</span><span class="w">      </span><span class="p">()</span><span class="w">                          </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">41</span>
+<span class="linenos">42</span><span class="w">  </span><span class="c1">// Methods to find an ident</span>
+<span class="linenos">43</span><span class="w">  </span><span class="c1">//   - in the current scope (top of the stack)</span>
+<span class="linenos">44</span><span class="w">  </span><span class="kt">bool</span><span class="w">    </span><span class="nf">findInCurrentScope</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ident</span><span class="p">)</span><span class="w">             </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">45</span><span class="w">  </span><span class="c1">//   - in the whole stack. Returns the number of scopes skipped to</span>
+<span class="linenos">46</span><span class="w">                          </span><span class="c1">// find the symbol, or -1 if it is not found</span>
+<span class="linenos">47</span><span class="w">  </span><span class="kt">int</span><span class="w">     </span><span class="nf">findInStack</span><span class="w">        </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ident</span><span class="p">)</span><span class="w">             </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">48</span>
+<span class="linenos">49</span><span class="w">  </span><span class="c1">// Adds a new symbol in the current scope</span>
+<span class="linenos">50</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">addLocalVar</span><span class="w">  </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ident</span><span class="p">,</span><span class="w"> </span><span class="n">TypesMgr</span><span class="o">::</span><span class="n">TypeId</span><span class="w"> </span><span class="n">type</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">51</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">addParameter</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ident</span><span class="p">,</span><span class="w"> </span><span class="n">TypesMgr</span><span class="o">::</span><span class="n">TypeId</span><span class="w"> </span><span class="n">type</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">52</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">addFunction</span><span class="w">  </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ident</span><span class="p">,</span><span class="w"> </span><span class="n">TypesMgr</span><span class="o">::</span><span class="n">TypeId</span><span class="w"> </span><span class="n">type</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">53</span>
+<span class="linenos">54</span><span class="w">  </span><span class="c1">// Accessors to check the class of the symbol. If not found return false</span>
+<span class="linenos">55</span><span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="nf">isLocalVarClass</span><span class="w">  </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ident</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">56</span><span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="nf">isParameterClass</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ident</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">57</span><span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="nf">isFunctionClass</span><span class="w">  </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ident</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">58</span>
+<span class="linenos">59</span><span class="w">  </span><span class="c1">// Accessor to get the TypeId of a symbol. If not found return type &#39;error&#39;</span>
+<span class="linenos">60</span><span class="w">  </span><span class="n">TypesMgr</span><span class="o">::</span><span class="n">TypeId</span><span class="w"> </span><span class="nf">getType</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ident</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">61</span>
+<span class="linenos">62</span><span class="w">  </span><span class="c1">// Check the existence of the &quot;main&quot; function</span>
+<span class="linenos">63</span><span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="nf">noMainProperlyDeclared</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">64</span>
+<span class="linenos">65</span><span class="w">  </span><span class="c1">// Given the name of a function, returns its TypeId</span>
+<span class="linenos">66</span><span class="w">  </span><span class="n">TypesMgr</span><span class="o">::</span><span class="n">TypeId</span><span class="w"> </span><span class="nf">getGlobalFunctionType</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ident</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">67</span><span class="w">  </span><span class="c1">// Given the names of a function and a local symbol, returns its TypeId</span>
+<span class="linenos">68</span><span class="w">  </span><span class="n">TypesMgr</span><span class="o">::</span><span class="n">TypeId</span><span class="w"> </span><span class="nf">getLocalSymbolType</span><span class="w">    </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">funcName</span><span class="p">,</span><span class="w"></span>
+<span class="linenos">69</span><span class="w">                                          </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ident</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">70</span>
+<span class="linenos">71</span><span class="w">  </span><span class="c1">// Print the symbols of a scope on the standard output</span>
+<span class="linenos">72</span><span class="w">  </span><span class="c1">//   - the symbols of the current scope (top of the stack)</span>
+<span class="linenos">73</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">printCurrentScope</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">74</span><span class="w">  </span><span class="c1">//   - the symbols of the whole stack</span>
+<span class="linenos">75</span><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">print</span><span class="w">             </span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="linenos">76</span>
+<span class="linenos">77</span><span class="p">};</span><span class="w">  </span><span class="c1">// class SymTable</span>
+</pre></div>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="typemanager.html"
+                          title="previous chapter">Type Manager</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="decoration.html"
+                          title="next chapter">Tree Decoration</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/modules/symboltable.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="decoration.html" title="Tree Decoration"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="typemanager.html" title="Type Manager"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">CL Lab Project 2022 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../project.html" >Lab Project of Compilers - FIB UPC, 2022</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SymbolTable</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018-2022, Compilers. FIB, UPC..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.4.0.
+    </div>
+  </body>
+</html>
